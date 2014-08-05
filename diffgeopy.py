@@ -17,6 +17,11 @@ import itertools as it
 
 ## Vorzeichen einer Permutation
 # original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
+# -> durch vorherige Anwendung von 'range_indices' behoben
+
+# TODO: evtl darauf zurückgreifen:
+# from sympy.functions.special.tensor_functions import eval_levicivita
+# das hat aber auch Probleme mit nicht-Konsekutiven Indizes
 def sign_perm(perm):
     perm = range_indices(perm)
     Np = len(np.array(perm))
@@ -30,18 +35,7 @@ def sign_perm(perm):
     assert sgn in (-1, 1), "error %s" %perm
 
     return sgn
-#
-#def perm_parity2(seq):
-#
-#    L = np.arange(len(seq)) % 2 # array r_[0, 1, 0, 1, ...]
-#
-#    tuples = zip(seq, L)
-#    tuples.sort(key = lambda x: x[0])
-#
-#    bin_info = np.array(zip(*tuples)[1])
-#
-#
-#    IPS()
+
 
 def range_indices(seq):
     """
