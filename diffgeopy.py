@@ -193,6 +193,7 @@ class DifferentialForm:
 
     def __setitem__(self,ind,wert):
         """Koeffizient der Differentialform abrufen"""
+        ind = np.atleast_1d(ind)
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
