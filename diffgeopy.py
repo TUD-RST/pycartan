@@ -434,6 +434,32 @@ class DifferentialForm:
 
 
 
+def pull_back(phi, args, omega):
+    """
+    computes the pullback phi^* omega for a given mapping phi between
+    manifolds (assumed to be given as a 1-column matrix
+    (however, this is not a vector field))
+    """
+
+    assert isinstance(phi, sp.Matrix)
+    assert phi.shape[1] == 1
+    assert phi.shape[0] == omega.dim_basis
+    assert isinstance(omega, DifferentialForm)
+
+
+    if omega.grad > 1:
+        raise NotImplementedError, "Not yet implemented"
+
+    # the arguments of phi are the new basis symbols
+
+    subs_trafo = zip(omega.basis, phi)
+    new_koeffs = omega.koeff.T.subs(subs_trafo) * phi.jacobian(args)
+
+    res = DifferentialForm(omega.grad, args, koeff = new_koeffs)
+
+    return res
+
+
 def _contract_vf_with_basis_form(vf, idx_tuple):
     """
     calculate (v˩A) where A is a basisform (like dx0^dx3^dx4) which
@@ -630,6 +656,28 @@ Schnipsel für Unit-Tests:
 """
 
 
+def _test_pull_back_to_sphere():
+    """
+    pull back the differential of the function F = (y1**2 + y2**2 + y3**2)
+    it must vanish on the sphere. Hereby we use spherical coordinates
+    to consider the sphere as immersed submanifold of R3
+    """
+
+    yy = y1, y2, y3 = sp.symbols("y1:4")
+    xx = x1, x2 = sp.symbols("x1:3")
+
+    F = y1**2 + y2**2 + y3**2
+    omega = dF = d(F, yy)
+    # spherical coordinates:
+    from sympy import sin, cos
+    phi = sp.Matrix([cos(x1)*cos(x2), sin(x1)*cos(x2), sin(x2)])
+
+    p = pull_back(phi, xx, omega)
+    assert p.is_zero()
+
+
+
+
 
 def _main():
     """
@@ -645,4 +693,5 @@ def _main():
     IPS()
 
 if __name__ == "__main__":
-    _main()
+    _test_pull_back_to_sphere()
+    #_main()
