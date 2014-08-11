@@ -112,6 +112,7 @@ class DifferentialForm:
         if(self.grad == 0):
             self.indizes = [(0,)]
         else:
+            # this is a list like [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
             #TODO: this should be renamed to index_tuples
             self.indizes = list(combinations(range(self.dim_basis),self.grad))
 
@@ -128,7 +129,7 @@ class DifferentialForm:
         self.name = name # usefull for symb_tools.make_global
 
 
-    # TODO: the property should be named coeff instead of coeff
+    # TODO: the property should be named coeff instead of koeff
     # quick hack combine new name with backward compability
     @property
     def coeff(self):
@@ -203,7 +204,7 @@ class DifferentialForm:
             self.koeff[ind_1d] = vz * wert
 
     def __getindexperm__(self,ind):
-        """ Liefert den Index und das Vorzeichen der Permutation"""
+        """ Liefert den 1d-Index und das Vorzeichen der Permutation"""
         ind = np.atleast_1d(ind)
         if(len(ind) == 1):
             ind_1d = self.indizes.index(tuple(ind))
@@ -217,7 +218,7 @@ class DifferentialForm:
 
     def diff(self):
         """returns the exterior derivative"""
-        # Neue Differentialform mit selber Basis erstellen
+        # create new form (with 1 degree higher) for the result
         res = DifferentialForm(self.grad + 1,self.basis)
         # 0-Form separat
         if(self.grad == 0):
@@ -225,12 +226,21 @@ class DifferentialForm:
                 res[m] = diff(self.koeff[0],self.basis[m])
         else:
             for n in range(self.num_koeff):
+                # get the index-tuple corresponding to koeff-entry n
                 ind_n = self.indizes[n]
+
                 for m in range(self.dim_basis):
                     if(m in ind_n):
+                        # m is already contained in the n-th index-tuple
                         continue
                     else:
-                        res[(m,) + ind_n] += diff(self.koeff[n],self.basis[m])
+                        new_idx_tpl = (m,) + ind_n
+                        # calculate coeff for dx_m ^ ...
+                        # this result contributes to the coeff of the
+                        # canocnical basis form dx_1^...^dx_m^...^dx_N
+                        # the sign is respected by __getitem__ and __setitem__
+                        res[new_idx_tpl] += diff(self.koeff[n],self.basis[m])
+
 
         return res
 
@@ -386,6 +396,7 @@ class DifferentialForm:
 
         return res
 
+    # todo: merge with the contract function
     def contract(self, vf):
         """
         Contract this differential form with a vectorfield
@@ -393,7 +404,6 @@ class DifferentialForm:
 
         We assume the same basis
 
-        currently only implemented for 1-forms
         """
 
         if not self.grad == 1: raise NotImplementedError("not yet supported")
@@ -617,7 +627,7 @@ def basis_1forms(basis):
 
     return res
 
-
+# todo: this function should be callable with Differential forms also
 def d(func, basis):
     return DifferentialForm(0, basis, koeff=[func]).d
 
