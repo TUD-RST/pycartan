@@ -140,8 +140,6 @@ class DifferentialForm:
         return self.ausgabe()
 
     def __add__(self, a):
-
-
         assert self.grad == a.grad
         assert self.basis == a.basis
 
@@ -168,6 +166,10 @@ class DifferentialForm:
 
         new_form.koeff = self.koeff*f
         return new_form
+
+    def __xor__(self, f):
+        """ overload ^-operator with wedge product """
+        return self.wp(f)
 
     def __eq__(self, other):
         """test for equality"""
