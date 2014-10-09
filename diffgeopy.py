@@ -13,70 +13,40 @@ import numpy as np
 import sympy as sp
 import itertools as it
 
-#from ipHelp import IPS
-
 ## Vorzeichen einer Permutation
 # original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
 # -> durch vorherige Anwendung von 'range_indices' behoben
 
-# TODO: evtl darauf zurückgreifen:
+
+# TODO: compare to
 # from sympy.functions.special.tensor_functions import eval_levicivita
-# das hat aber auch Probleme mit nicht-Konsekutiven Indizes
 def sign_perm(perm):
-    perm = range_indices(perm)
+    """
+    :param perm:
+    :return: the sign {-1, 1} of a permutation
+    examples:  [0, 1, 2] -> 1;
+               [1, 0, 2]) -> -1
+               [1, 0, 3]) -> -1
+    """
+    perm = range_indices(perm)  # prevent problems with non consecutive indices
     Np = len(np.array(perm))
     sgn = 1
     for n in range(Np - 1):
-        for m in range(n + 1,Np):
-            sgn *= 1. * (perm[m]  - perm[n]) / (m - n)
+        for m in range(n + 1, Np):
+            sgn *= 1. * (perm[m] - perm[n]) / (m - n)
     sgn = int(sgn)
-#    if not sgn in (-1, 1):
-#        IPS()
-    assert sgn in (-1, 1), "error %s" %perm
+
+    assert sgn in (-1, 1), "error %s" % perm
 
     return sgn
 
 
-def range_indices(seq):
-    """
-    returns a tuple which represents the same permutation
-    but with indices from range(N)
-    (5, 2, 10, 1) -> (2, 1, 3, 0)
-    """
-    assert len(set(seq)) == len(seq)
-
-    #assert False
-    # range_indices((0, 1, 3, 8, 2, 4))
-
-    new_elements = range(len(seq))
-
-    res = [None]* len(seq)
-
-    seq = list(seq)
-    seq_work = list(seq)
-
-    for i in range(len(seq)):
-        m1 = min(seq_work)
-        m2 = min(new_elements)
-
-        i = seq.index(m1)
-        res[i] = m2
-
-        seq_work.remove(m1)
-        new_elements.remove(m2)
-
-#    tuples = list(enumerate(seq))
-#    tuples.sort(key = lambda x: x[1])
-#    res = zip(*tuples)[0]
-    assert not None in res
-    return res
-
-
+#TODO: duplicate of sign_perm
 def perm_parity(seq):
-    '''\
+    """
     Given a permutation of the digits 0..N in order as a list,
     returns its parity (or sign): +1 for even parity; -1 for odd.
-    '''
+    """
     # adapted from http://code.activestate.com/
     # recipes/578227-generate-the-parity-or-sign-of-a-permutation/
     # by Paddy McCarthy
@@ -95,20 +65,49 @@ def perm_parity(seq):
     return parity
 
 
+def range_indices(seq):
+    """
+    returns a tuple which represents the same permutation
+    but with indices from range(N)
+    (5, 2, 10, 1) -> (2, 1, 3, 0)
+    """
+    assert len(set(seq)) == len(seq)
+
+    new_elements = range(len(seq))
+
+    res = [None]* len(seq)
+
+    seq = list(seq)
+    seq_work = list(seq)
+
+    for i in range(len(seq)):
+        m1 = min(seq_work)
+        m2 = min(new_elements)
+
+        i = seq.index(m1)
+        res[i] = m2
+
+        seq_work.remove(m1)
+        new_elements.remove(m2)
+
+    assert not None in res
+    return res
+
+
 class DifferentialForm:
     def __init__(self, n, basis, koeff=None, name=None):
         """
-        :n: degree
+        :n: degree (e.g. 0-form, 1-form, 2-form, ... )
         :basis: list of basis coordinates (Symbols)
+        :koeff: coefficient vector for initilization (defualt: [0, ..., 0])
+        :name: optional Name
 
         """
-        # Grad der Differentialform
+
         self.grad = n
-        # Basis der Differentialform
         self.basis = basis
-        # Dimension der Basis
         self.dim_basis = len(basis)
-        # Liste zulässiger Indizes
+        # list of allowed indices
         if(self.grad == 0):
             self.indizes = [(0,)]
         else:
@@ -116,17 +115,17 @@ class DifferentialForm:
             #TODO: this should be renamed to index_tuples
             self.indizes = list(combinations(range(self.dim_basis),self.grad))
 
-
-        # Anzahl der Koeffizienten der Differentialform
+        # number of coefficient
         self.num_koeff = len(self.indizes)
         # Koeffizienten der Differentialform
-        if koeff == None:
-            self.koeff = zeros(self.num_koeff,1)
+        if koeff is None:
+            self.koeff = zeros(self.num_koeff, 1)
         else:
             assert len(koeff) == self.num_koeff
+            # TODO: use a row vector here
             self.koeff = sp.Matrix(koeff).reshape(self.num_koeff, 1)
 
-        self.name = name # usefull for symb_tools.make_global
+        self.name = name  # useful for symb_tools.make_global
 
 
     # TODO: the property should be named coeff instead of koeff
@@ -168,7 +167,13 @@ class DifferentialForm:
         return new_form
 
     def __xor__(self, f):
-        """ overload ^-operator with wedge product """
+        """
+        overload ^-operator with wedge product
+
+        caveat: possible pitfall because of pythons operator precedence:
+            dx1^dx2 + dx3^dx4 ist evaluated like this:
+            dx1^(dx2 + dx3)^dx4 which is not intuitive
+        """
         return self.wp(f)
 
     def __eq__(self, other):
@@ -177,14 +182,14 @@ class DifferentialForm:
         assert self.basis == other.basis
         if self.grad == other.grad:
             return self.koeff == other.koeff
-        else: return False
-
+        else:
+            return False
 
     def __neg__(self):
-        return -1*self
+        return -1 * self
 
-    def __getitem__(self,ind):
-        """Koeffizient der Differentialform zuweisen"""
+    def __getitem__(self, ind):
+        """return the coefficient, corresponding to the index-tuple ind"""
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
@@ -194,14 +199,15 @@ class DifferentialForm:
         else:
             return vz * self.koeff[ind_1d]
 
-    def __setitem__(self,ind,wert):
-        """Koeffizient der Differentialform abrufen"""
+    def __setitem__(self, ind, wert):
+        """set the coefficient corresponding to the index-tuple ind"""
         ind = np.atleast_1d(ind)
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
         except ValueError:
-            print u'invalid Index'
+            errmsg = 'invalid index-tuple: %s' % str(ind)
+            raise ValueError, errmsg
         else:
             self.koeff[ind_1d] = vz * wert
 
@@ -450,7 +456,7 @@ def pull_back(phi, args, omega):
     """
     computes the pullback phi^* omega for a given mapping phi between
     manifolds (assumed to be given as a 1-column matrix
-    (however, this is not a vector field))
+    (however, phi is not a vector field))
     """
 
     assert isinstance(phi, sp.Matrix)
@@ -641,7 +647,13 @@ def diffgeo_setup(n):
     inserts both in the global name space
     """
 
-    xx = sp.symbols("x1:%i" % (n+1))
+    if isinstance(n, int):
+        xx = sp.symbols("x1:%i" % (n+1))
+    elif isinstance(n, basestring):
+        xx = sp.symbols(n)
+    else:
+        raise TypeError, "unexpected argument-type: "+ str(type(n))
+
     bf = basis_1forms(xx)
 
     import symb_tools as st
