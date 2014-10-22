@@ -134,6 +134,10 @@ class DifferentialForm:
     def coeff(self):
         return self.koeff
 
+    @property
+    def degree(self):
+        return self.grad
+
 
     def __repr__(self):
         return self.ausgabe()
@@ -190,6 +194,7 @@ class DifferentialForm:
 
     def __getitem__(self, ind):
         """return the coefficient, corresponding to the index-tuple ind"""
+        ind = np.atleast_1d(ind)
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
@@ -211,9 +216,8 @@ class DifferentialForm:
         else:
             self.koeff[ind_1d] = vz * wert
 
-    def __getindexperm__(self,ind):
+    def __getindexperm__(self, ind):
         """ Liefert den 1d-Index und das Vorzeichen der Permutation"""
-        ind = np.atleast_1d(ind)
         if(len(ind) == 1):
             ind_1d = self.indizes.index(tuple(ind))
             sgn = 1
@@ -640,7 +644,7 @@ def d(func, basis):
     return DifferentialForm(0, basis, koeff=[func]).d
 
 
-def diffgeo_setup(n):
+def setup_objects(n):
     """
     convenience function
     creates a coordinate basis, and a set of canonical one-forms and
@@ -651,6 +655,10 @@ def diffgeo_setup(n):
         xx = sp.symbols("x1:%i" % (n+1))
     elif isinstance(n, basestring):
         xx = sp.symbols(n)
+
+    # now assume n is a sequence of symbols
+    elif all([x.is_Symbol for x in n]):
+        xx = n
     else:
         raise TypeError, "unexpected argument-type: "+ str(type(n))
 
@@ -662,6 +670,9 @@ def diffgeo_setup(n):
     st.make_global(bf, up_count = 2)
 
     return xx, bf
+
+# for backward compatibility
+diffgeo_setup = setup_objects
 
 
 
