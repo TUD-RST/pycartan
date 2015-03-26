@@ -126,7 +126,7 @@ class DifferentialForm:
         self.name = name  # useful for symb_tools.make_global
 
 
-    # TODO: the property should be named coeff instead of koeff
+    # TODO: the attribute should be named coeff instead of koeff
     # quick hack combine new name with backward compability
     @property
     def coeff(self):
@@ -135,7 +135,6 @@ class DifferentialForm:
     @property
     def degree(self):
         return self.grad
-
 
     def __repr__(self):
         return self.ausgabe()
@@ -149,17 +148,14 @@ class DifferentialForm:
 
         return new_form
 
-
     def __sub__(self, m):
 
         return self + (m * (-1))
-
 
     def __rmul__(self, f):
         """scalar multiplication from the left (reverse mul)"""
         # use commutativity
         return self * f
-
 
     def __mul__(self, f):
         """ scalar multipplication"""
@@ -254,10 +250,15 @@ class DifferentialForm:
 
         return res
 
+    @property
+    def d(self):
+        """property -> allows for short syntax: w1.d (= w1.diff())"""
+        return self.diff()
+
     def nonzero_tuples(self):
         """
         returns a list of tuples (coeff, idcs) for each index tuple idcs,
-        where the corresponding coeff == 0
+        where the corresponding coeff != 0
         """
         Z = zip(self.koeff, self.indizes)
         res = [(c, idcs) for (c, idcs) in Z if c != 0]
@@ -277,17 +278,13 @@ class DifferentialForm:
                 return False
         return True
 
-    @property
-    def d(self):
-        """property -> allows for short syntax: w1.d (= w1.diff())"""
-        return self.diff()
 
     def subs(self, *args, **kwargs):
         """
         returns a copy of this form with subs(...) applied to its koeff-matrix
         """
         res = DifferentialForm(self.grad, self.basis)
-        res.koeff = self.koeff.subs(*args, **kwargs)
+        res.coeff = self.coeff.subs(*args, **kwargs)
         return res
 
     def change_of_basis(self, new_basis, Psi, Psi_jac=None):
@@ -309,7 +306,7 @@ class DifferentialForm:
         assert len(new_basis) == len(self.basis)
         assert self.grad <= 1  # not yet understood for higher order
         res = DifferentialForm(self.grad, new_basis)
-        k = self.koeff.subs(zip(self.basis, Psi))
+        k = self.coeff.subs(zip(self.basis, Psi))
 
         if Psi_jac == None:
             Psi_jac = Psi.jacobian(new_basis)
@@ -317,7 +314,7 @@ class DifferentialForm:
         k_new = (k.T * Psi_jac).T
         assert k_new.shape == (len(new_basis), 1)
 
-        res.koeff = k_new
+        res.coeff = k_new
         return res
 
     # TODO doctest
@@ -339,6 +336,7 @@ class DifferentialForm:
 
         return res
 
+    # TODO: Refactoring
     # Differentialform ausgeben
     def ausgabe(self):
         # 0-Form separat
@@ -367,6 +365,7 @@ class DifferentialForm:
         # Ausgabe
         return df_str
 
+    # TODO: Refactoring
     def eliminiere_Ableitungen(self, koeff):
         koeff = sp.simplify(koeff)
         at_deri = list(koeff.atoms(sp.Derivative))
@@ -396,7 +395,9 @@ class DifferentialForm:
             d h = self
         """
 
-        if not self.grad == 1: raise NotImplementedError("not yet supported")
+        if not self.grad == 1:
+            raise NotImplementedError("not yet supported")
+
         assert self.d.is_zero()
 
         res = 0
@@ -405,7 +406,7 @@ class DifferentialForm:
 
         return res
 
-    # todo: merge with the contract function
+    # TODO: merge with the contract function
     def contract(self, vf):
         """
         Contract this differential form with a vectorfield
