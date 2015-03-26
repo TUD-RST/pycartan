@@ -11,6 +11,7 @@ from sympy import sin, cos, exp
 
 from pycartanlib import pycartan as ct
 
+from IPython import embed as IPS
 
 class ExteriorAlgebraTests(unittest.TestCase):
 
@@ -103,6 +104,44 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(dh2.coeff[2], h2.diff(x3))
         self.assertEqual(dh2.coeff[3], h2.diff(x4))
         self.assertEqual(dh2.coeff[4], h2.diff(x5))
+
+    def test_jet_extend_basis1(self):
+        x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xx_tmp, ddx = ct.setup_objects(xx)
+
+        self.assertTrue(xx is xx_tmp)
+
+        # get the individual forms
+        dx1, dx2, dx3 = ddx
+
+        dx1.jet_extend_basis()
+        self.assertTrue(len(dx1.basis) == 2*len(xx))
+        self.assertTrue(dx1.coeff[0] == 1)
+        self.assertFalse( any(dx1.coeff[1:]) )
+
+        # derivative coordinates
+        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        ext_basis = ct.st.row_stack(xx, xxd)
+
+        w1 = xdot1 * dx2
+        w1.jet_extend_basis()
+        self.assertEqual(w1.basis[3], w1.coeff[1])
+
+        dw1 = w1.d
+        res1 = ct.d(xdot1, ext_basis)^ct.d(x2, ext_basis)
+        self.assertEqual(dw1, res1)
+
+        w2 = x3*dx2
+        self.assertEqual(w2.dim_basis, len(xx))
+        w2.jet_extend_basis()
+        self.assertEqual(w2.dim_basis, len(ext_basis))
+
+        dw2 = w2.d
+        res2 = -dx2^dx3
+        res2.jet_extend_basis()
+        self.assertEqual(dw2, res2)
+
+        # TODO: test with multiple calls to jet_ext_basis
 
 
 def main():

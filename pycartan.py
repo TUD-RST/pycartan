@@ -11,6 +11,8 @@ import numpy as np
 import sympy as sp
 import itertools as it
 
+import symb_tools as st  # needed for make global, perform_time_derivative
+
 # # Vorzeichen einer Permutation
 # original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
 # -> durch vorherige Anwendung von 'range_indices' behoben
@@ -136,6 +138,10 @@ class DifferentialForm:
     def degree(self):
         return self.grad
 
+    @property
+    def indices(self):
+        return self.indizes
+
     def __repr__(self):
         return self.ausgabe()
 
@@ -186,6 +192,7 @@ class DifferentialForm:
     def __neg__(self):
         return -1 * self
 
+    # TODO: where is this needed? Could it implemented as explicit call?
     def __getitem__(self, ind):
         """return the coefficient, corresponding to the index-tuple ind"""
         ind = np.atleast_1d(ind)
@@ -198,18 +205,23 @@ class DifferentialForm:
         else:
             return vz * self.koeff[ind_1d]
 
+    # TODO: where is this needed? Could it implemented as explicit call?
     def __setitem__(self, ind, wert):
+        self.setitem(ind, wert)
+
+    def setitem(self, idx_tup, value):
         """set the coefficient corresponding to the index-tuple ind"""
-        ind = np.atleast_1d(ind)
-        assert len(ind) == self.grad
+        idx_tup = np.atleast_1d(idx_tup)
+        assert len(idx_tup) == self.grad
         try:
-            ind_1d, vz = self.__getindexperm__(ind)
+            idx_1d, sign = self.__getindexperm__(idx_tup)
         except ValueError:
-            errmsg = 'invalid index-tuple: %s' % str(ind)
+            errmsg = 'invalid index-tuple: %s' % str(idx_tup)
             raise ValueError(errmsg)
         else:
-            self.koeff[ind_1d] = vz * wert
+            self.coeff[idx_1d] = sign * value
 
+    # TODO: Should be reformulated as _get_canonical_signed_index
     def __getindexperm__(self, ind):
         """ Liefert den 1d-Index und das Vorzeichen der Permutation"""
         if len(ind) == 1:
@@ -226,7 +238,7 @@ class DifferentialForm:
         """returns the exterior derivative"""
         # create new form (with 1 degree higher) for the result
         res = DifferentialForm(self.grad + 1, self.basis)
-        # 0-Form separat
+        # 0-Form separately
         if self.grad == 0:
             for m in range(self.dim_basis):
                 res[m] = sp.diff(self.koeff[0], self.basis[m])
@@ -238,6 +250,7 @@ class DifferentialForm:
                 for m in range(self.dim_basis):
                     if m in ind_n:
                         # m is already contained in the n-th index-tuple
+                        # this is the 'dx1^dx1' case.
                         continue
                     else:
                         new_idx_tpl = (m,) + ind_n
@@ -245,8 +258,8 @@ class DifferentialForm:
                         # this result contributes to the coeff of the
                         # canocnical basis form dx_1^...^dx_m^...^dx_N
                         # the sign is respected by __getitem__ and __setitem__
-                        res[new_idx_tpl] += sp.diff(self.koeff[n],
-                                                    self.basis[m])
+                        partial_coeff = sp.diff(self.koeff[n], self.basis[m])
+                        res[new_idx_tpl] += partial_coeff
 
         return res
 
@@ -451,6 +464,65 @@ class DifferentialForm:
             test_form = wp(ds, test_form)
 
             assert r <= (self.dim_basis - 1) / 2.0
+
+    def jet_extend_basis(self, order=1, zero_order_hint=None):
+        """
+        suppose self = a*dx1 + b*dx2
+        after application of this method we have
+        self = a*dx1 + b*dx2 + 0*dxdot1 + 0*dxdot2
+
+        This is needed in the context of differential forms,
+        defined on jet bundles, where d/dt (self) the coefficients might
+        depend on (time-) derivatives of the basis coordinates, e.g a = 3*xdot1.
+        To properly calculate self.d (the extrerior derivative) the basis must be
+        prepared for components 'in direction of' dxdot1
+        """
+        old_basis = sp.Matrix(self.basis)
+        old_coeff = self.coeff
+        old_indices = self.indices  # List of k-tuples (self.degree == k)
+
+        assert old_basis.shape[1] == 1
+
+        # we need to determine which are the symbols, corresponding to
+        # the 0th order coordinates
+        # in the future this will be done by checking a special attribute
+        # of the ExtendedSymbols.
+        # Currently, we use a manual hint
+
+        if zero_order_hint:
+            zoh = sp.Matrix(zero_order_hint)
+        else:
+            # assume, we only have 0th order
+            zoh = old_basis
+
+        L = len(zoh)
+        assert zoh.shape[1] == 1
+        assert old_basis[:L, :] == zoh
+        N = len(old_basis) * 1.0/L
+        assert int(N) == N
+
+        # old_highest_derivs
+        ohd = old_basis[-L:, :]
+
+        new_highest_derivs = st.perform_time_derivative(ohd, old_basis, order=1)
+
+        new_basis = st.row_stack(old_basis, new_highest_derivs)
+
+        new_form  = DifferentialForm(self.degree, new_basis)
+        self.basis = new_basis
+        self.dim_basis = len(new_basis)
+        self.indizes = new_form.indices
+        self.koeff = new_form.coeff
+        self.num_koeff = new_form.num_koeff
+
+        for idx_tup in self.indices:
+            if idx_tup in old_indices:
+                # get the index of the index-tuple
+                meta_idx =  old_indices.index(idx_tup)
+                c = old_coeff[meta_idx]
+            else:
+                c = 0
+            self.setitem(idx_tup, c)
 
 
 def pull_back(phi, args, omega):
@@ -657,8 +729,6 @@ def setup_objects(n):
         raise TypeError, "unexpected argument-type: " + str(type(n))
 
     bf = basis_1forms(xx)
-
-    import symb_tools as st
 
     st.make_global(xx, up_count=2)
     st.make_global(bf, up_count=2)
