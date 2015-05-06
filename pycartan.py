@@ -294,9 +294,10 @@ class DifferentialForm:
 
     def subs(self, *args, **kwargs):
         """
-        returns a copy of this form with subs(...) applied to its koeff-matrix
+        returns a copy of this form with subs(...) applied to its coeff-matrix
         """
         res = DifferentialForm(self.grad, self.basis)
+        res.koeff = self.coeff.subs(*args, **kwargs) # todo: this should made oboslete
         res.coeff = self.coeff.subs(*args, **kwargs)
         return res
 

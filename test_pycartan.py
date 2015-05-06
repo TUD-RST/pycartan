@@ -61,6 +61,26 @@ class ExteriorAlgebraTests(unittest.TestCase):
         aa = a*dr-r*dx1-l*dx2
         self.assertEqual(aa.rank(), 1)
 
+    def test_subs(self):
+        a, f, r = sp.symbols('a, f, r')
+        (x1, x2, r), (dx1, dx2, dr) = ct.diffgeo_setup(3)
+        #aa = a*dr-r*dx1-l*dx2
+
+        w1 = dx1.subs(a, r)
+        self.assertEqual(dx1, w1)
+
+        w2 = dx1 + a*dx2 + f(x1, x2)*dr
+        w3 = w2.subs(a, r)
+        w4 = w2.subs(x1, r)
+
+        sl = zip((a, x1), (r, 3*r+7))
+        w5 = w2.subs(sl)
+        self.assertEqual(w3, dx1 + r*dx2 + f(x1, x2)*dr)
+        self.assertEqual(w4, dx1 + a*dx2 + f(r, x2)*dr)
+        self.assertEqual(w5, dx1 + r*dx2 + f(3*r+7, x2)*dr)
+
+
+
     def test_pull_back_to_sphere(self):
         """
         pull back the differential of the function F = (y1**2 + y2**2 + y3**2)
