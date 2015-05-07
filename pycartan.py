@@ -95,11 +95,11 @@ def range_indices(seq):
 
 
 class DifferentialForm:
-    def __init__(self, n, basis, koeff=None, name=None):
+    def __init__(self, n, basis, coeff=None, name=None):
         """
         :n: degree (e.g. 0-form, 1-form, 2-form, ... )
         :basis: list of basis coordinates (Symbols)
-        :koeff: coefficient vector for initilization (defualt: [0, ..., 0])
+        :coeff: coefficient vector for initilization (defualt: [0, ..., 0])
         :name: optional Name
 
         """
@@ -116,23 +116,22 @@ class DifferentialForm:
             self.indizes = list(combinations(range(self.dim_basis), self.grad))
 
         # number of coefficient
-        self.num_koeff = len(self.indizes)
-        # Koeffizienten der Differentialform
-        if koeff is None:
-            self.koeff = sp.zeros(self.num_koeff, 1)
+        self.num_coeff = len(self.indizes)
+
+        # coefficients of the differential form
+        if coeff is None:
+            self.coeff = sp.zeros(self.num_coeff, 1)
         else:
-            assert len(koeff) == self.num_koeff
+            assert len(coeff) == self.num_coeff
             # TODO: use a row vector here
-            self.koeff = sp.Matrix(koeff).reshape(self.num_koeff, 1)
+            self.coeff = sp.Matrix(coeff).reshape(self.num_coeff, 1)
 
         self.name = name  # useful for symb_tools.make_global
 
-
-    # TODO: the attribute should be named coeff instead of koeff
     # quick hack combine new name with backward compability
     @property
-    def coeff(self):
-        return self.koeff
+    def koeff(self):
+        return self.coeff
 
     @property
     def degree(self):
@@ -150,7 +149,7 @@ class DifferentialForm:
         assert self.basis == a.basis
 
         new_form = DifferentialForm(self.grad, self.basis)
-        new_form.koeff = self.koeff + a.koeff
+        new_form.coeff = self.coeff + a.coeff
 
         return new_form
 
@@ -167,7 +166,7 @@ class DifferentialForm:
         """ scalar multipplication"""
         new_form = DifferentialForm(self.grad, self.basis)
 
-        new_form.koeff = self.koeff * f
+        new_form.coeff = self.coeff * f
         return new_form
 
     def __xor__(self, f):
@@ -185,7 +184,7 @@ class DifferentialForm:
         assert isinstance(other, DifferentialForm)
         assert self.basis == other.basis
         if self.grad == other.grad:
-            return self.koeff == other.koeff
+            return self.coeff == other.coeff
         else:
             return False
 
@@ -203,7 +202,7 @@ class DifferentialForm:
             print u'invalid Index'
             return None
         else:
-            return vz * self.koeff[ind_1d]
+            return vz * self.coeff[ind_1d]
 
     # TODO: where is this needed? Could it implemented as explicit call?
     def __setitem__(self, ind, wert):
@@ -241,10 +240,10 @@ class DifferentialForm:
         # 0-Form separately
         if self.grad == 0:
             for m in range(self.dim_basis):
-                res[m] = sp.diff(self.koeff[0], self.basis[m])
+                res[m] = sp.diff(self.coeff[0], self.basis[m])
         else:
-            for n in range(self.num_koeff):
-                # get the index-tuple corresponding to koeff-entry n
+            for n in range(self.num_coeff):
+                # get the index-tuple corresponding to coeff-entry n
                 ind_n = self.indizes[n]
 
                 for m in range(self.dim_basis):
@@ -258,7 +257,7 @@ class DifferentialForm:
                         # this result contributes to the coeff of the
                         # canocnical basis form dx_1^...^dx_m^...^dx_N
                         # the sign is respected by __getitem__ and __setitem__
-                        partial_coeff = sp.diff(self.koeff[n], self.basis[m])
+                        partial_coeff = sp.diff(self.coeff[n], self.basis[m])
                         res[new_idx_tpl] += partial_coeff
 
         return res
@@ -273,7 +272,7 @@ class DifferentialForm:
         returns a list of tuples (coeff, idcs) for each index tuple idcs,
         where the corresponding coeff != 0
         """
-        Z = zip(self.koeff, self.indizes)
+        Z = zip(self.coeff, self.indizes)
         res = [(c, idcs) for (c, idcs) in Z if c != 0]
 
         return res
@@ -291,13 +290,26 @@ class DifferentialForm:
                 return False
         return True
 
+    def simplify(self, *args, **kwargs):
+        """
+        calls the simplify method of the coeff-matrix
+        (nothing is returned)
+        """
+        self.coeff.simplify(*args, **kwargs)
+
+    def expand(self, *args, **kwargs):
+        """
+        returns a copy of this form with expand() applied to its coeff-matrix
+        """
+        res = DifferentialForm(self.grad, self.basis)
+        res.coeff = self.coeff.expand(*args, **kwargs)
+        return res
 
     def subs(self, *args, **kwargs):
         """
         returns a copy of this form with subs(...) applied to its coeff-matrix
         """
         res = DifferentialForm(self.grad, self.basis)
-        res.koeff = self.coeff.subs(*args, **kwargs) # todo: this should made oboslete
         res.coeff = self.coeff.subs(*args, **kwargs)
         return res
 
@@ -355,18 +367,18 @@ class DifferentialForm:
     def ausgabe(self):
         # 0-Form separat
         if self.grad == 0:
-            df_str = str(self.koeff[0])
+            df_str = str(self.coeff[0])
         else:
             df_str = '0'
-            for n in range(self.num_koeff):
-                koeff_n = self.koeff[n]
+            for n in range(self.num_coeff):
+                coeff_n = self.coeff[n]
                 ind_n = self.indizes[n]
-                if koeff_n == 0:
+                if coeff_n == 0:
                     continue
                 else:
-                    # String des Koeffizienten
+                    # String of the coefficient
                     sub_str = '(' + self.eliminiere_Ableitungen(
-                        self.koeff[n]) + ') '
+                        self.coeff[n]) + ') '
                     # Füge Basis-Vektoren hinzu
                     for m in range(self.grad - 1):
                         sub_str += 'd' + (self.basis[ind_n[m]]).name + '^'
@@ -380,9 +392,9 @@ class DifferentialForm:
         return df_str
 
     # TODO: Refactoring
-    def eliminiere_Ableitungen(self, koeff):
-        koeff = sp.simplify(koeff)
-        at_deri = list(koeff.atoms(sp.Derivative))
+    def eliminiere_Ableitungen(self, coeff):
+        coeff = sp.simplify(coeff)
+        at_deri = list(coeff.atoms(sp.Derivative))
         if at_deri:
             for deri_n in at_deri:
                 # Argumente des Derivative-Objekts
@@ -398,8 +410,8 @@ class DifferentialForm:
                 # Neue Funktion mit entsprechenden Argumenten erzeugen
                 dfunc = sp.Function('D' + str(ndiff) + name_diff)(*diff_arg)
                 # Neue Funktion einsetzen und Substitutionen durchführen
-                koeff = koeff.subs(deri_n, dfunc).doit()
-        return str(koeff)
+                coeff = coeff.subs(deri_n, dfunc).doit()
+        return str(coeff)
 
     # TODO: unit test, extend to higher degrees
     def integrate(self):
@@ -513,8 +525,8 @@ class DifferentialForm:
         self.basis = new_basis
         self.dim_basis = len(new_basis)
         self.indizes = new_form.indices
-        self.koeff = new_form.coeff
-        self.num_koeff = new_form.num_koeff
+        self.coeff = new_form.coeff
+        self.num_coeff = new_form.num_coeff
 
         for idx_tup in self.indices:
             if idx_tup in old_indices:
@@ -544,9 +556,9 @@ def pull_back(phi, args, omega):
     # the arguments of phi are the new basis symbols
 
     subs_trafo = zip(omega.basis, phi)
-    new_koeffs = omega.koeff.T.subs(subs_trafo) * phi.jacobian(args)
+    new_coeffs = omega.coeff.T.subs(subs_trafo) * phi.jacobian(args)
 
-    res = DifferentialForm(omega.grad, args, koeff=new_koeffs)
+    res = DifferentialForm(omega.grad, args, coeff=new_coeffs)
 
     return res
 
@@ -640,18 +652,18 @@ def keilprodukt(df1, df2):
         return True
 
     res = DifferentialForm(df1.grad + df2.grad, df1.basis)
-    for n in range(df1.num_koeff):
+    for n in range(df1.num_coeff):
         if df1.grad == 0:
             df1_n = ()
         else:
             df1_n = df1.indizes[n]
-        for m in range(df2.num_koeff):
+        for m in range(df2.num_coeff):
             if df2.grad == 0:
                 df2_m = ()
             else:
                 df2_m = df2.indizes[m]
             if areTuplesAdjunct(df1_n, df2_m):
-                res[df1_n + df2_m] += df1.koeff[n] * df2.koeff[m]
+                res[df1_n + df2_m] += df1.coeff[n] * df2.coeff[m]
     return res
 
 
@@ -683,7 +695,7 @@ def wp(a, b, *args):
 
             i_new = tuple(sorted(i_new))
             basis_index = new_base_tuples.index(i_new)
-            res.koeff[basis_index] += s * ca * cb
+            res.coeff[basis_index] += s * ca * cb
 
     if args:
         res = wp(res, args[0], *args[1:])
@@ -701,14 +713,14 @@ def basis_1forms(basis):
         tmp = z * 1
         tmp[i, 0] = 1
         name = "d" + basis[i].name
-        res.append(DifferentialForm(1, basis, koeff=tmp, name=name))
+        res.append(DifferentialForm(1, basis, coeff=tmp, name=name))
 
     return res
 
 
 # todo: this function should be callable with Differential forms also
 def d(func, basis):
-    return DifferentialForm(0, basis, koeff=[func]).d
+    return DifferentialForm(0, basis, coeff=[func]).d
 
 
 def setup_objects(n):

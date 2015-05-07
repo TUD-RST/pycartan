@@ -79,7 +79,30 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(w4, dx1 + a*dx2 + f(r, x2)*dr)
         self.assertEqual(w5, dx1 + r*dx2 + f(3*r+7, x2)*dr)
 
+    def test_string_representation(self):
+        a, f, r = sp.symbols('a, f, r')
+        (x1, x2, r), (dx1, dx2, dr) = ct.diffgeo_setup(3)
 
+        s1 = str(dx1)
+        self.assertEqual(s1, '(1) dx1')
+
+    def test_simplify(self):
+        a, f, r = sp.symbols('a, f, r')
+        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
+
+        w = cos(x3)**2*dx1 + sin(x3)**2*dx1
+        w.simplify()
+
+        self.assertEqual(w, dx1)
+
+    def test_expand(self):
+        a, f, r = sp.symbols('a, f, r')
+        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
+
+        c = a*(1/a - a) + a**2
+        w = c*dx1
+
+        self.assertEqual(w.expand(), dx1)
 
     def test_pull_back_to_sphere(self):
         """
