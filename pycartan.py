@@ -135,6 +135,10 @@ class DifferentialForm(CantSympify):
         return self.coeff
 
     @property
+    def c(self):
+        return self.coeff
+
+    @property
     def degree(self):
         return self.grad
 

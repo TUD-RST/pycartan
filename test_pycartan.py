@@ -42,6 +42,10 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEquals(dx1*dx2, dx1.wp(dx2))
         self.assertEquals(dx5*dx2, - dx2^dx5)
         self.assertEquals((dx5*dx2*dx1).degree, 3)
+
+        # commutativity with scalar functions
+        self.assertEquals(dx5*x2*x3*10*dx2*dx1*x1, x2*x3*10*x1*dx5^dx2^dx1)
+
         zero4_form = ct.DifferentialForm(4, self.xx)
         self.assertEquals((dx5*dx2*dx1*dx5), zero4_form)
         self.assertFalse( any((dx4*dx4).coeff) )
