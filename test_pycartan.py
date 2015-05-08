@@ -34,7 +34,20 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEquals((dx5^dx2^dx1^dx5), zero4_form)
         self.assertFalse( any((dx4^dx4).coeff) )
 
+    def test_wedge_product2(self):
+        # here we test the `*` operator which was extended to DifferentialForms
+        # after `^`
+
+        dx1, dx2, dx3, dx4, dx5 = self.dx
+        self.assertEquals(dx1*dx2, dx1.wp(dx2))
+        self.assertEquals(dx5*dx2, - dx2^dx5)
+        self.assertEquals((dx5*dx2*dx1).degree, 3)
+        zero4_form = ct.DifferentialForm(4, self.xx)
+        self.assertEquals((dx5*dx2*dx1*dx5), zero4_form)
+        self.assertFalse( any((dx4*dx4).coeff) )
+
     def test_calculation(self):
+
 
         dx1, dx2, dx3, dx4, dx5 = self.dx
         x1, x2, x3, x4, x5 = self.xx
@@ -42,8 +55,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
         w1 = x2*dx1 + x5*dx3 - dx4
         w1 += dx2*sp.exp(x3)
 
-        self.assertIsInstance(w1, ct.DifferentialForm)
-        self.assertEquals(w1.degree, 1)
+        with self.assertRaises(sp.SympifyError) as cm:
+            x1.diff(dx1)
+
+        with self.assertRaises(TypeError) as cm:
+            x1 + dx2
 
     def test_exterior_derivative(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx

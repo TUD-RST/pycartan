@@ -9,6 +9,7 @@ Created on Tue Sep 03 17:44:46 2013
 from itertools import combinations
 import numpy as np
 import sympy as sp
+from sympy.core.sympify import CantSympify
 import itertools as it
 
 import symb_tools as st  # needed for make global, perform_time_derivative
@@ -94,7 +95,7 @@ def range_indices(seq):
     return res
 
 
-class DifferentialForm:
+class DifferentialForm(CantSympify):
     def __init__(self, n, basis, coeff=None, name=None):
         """
         :n: degree (e.g. 0-form, 1-form, 2-form, ... )
@@ -158,12 +159,34 @@ class DifferentialForm:
         return self + (m * (-1))
 
     def __rmul__(self, f):
-        """scalar multiplication from the left (reverse mul)"""
-        # use commutativity
+        """multiplication from the left (reverse mul) -> f*self
+        This method provides wedge-product and scalar multiplication
+
+        see also docstring of `__mul__`
+        """
+
+        if isinstance(f, DifferentialForm):
+            # normally this should not happen because `f.__mul__` is executed
+            # anyway, no problem:
+            return f.wp(self)
+
+        # scalar multiplication -> use commutativity
         return self * f
 
     def __mul__(self, f):
-        """ scalar multipplication"""
+        """ multiplication from the right
+        This method provides wedge-product and scalar multiplication
+
+        Note: for Differential Forms w1, w2, w3 we have:
+        w1*w2 == w1^w2
+        but due to python operator precedence of `+` over `^` we have
+        w1*w2+w3 == (w1*w2)+w3 != w1^w2+w3 == w1^(w2+w3)
+        """
+
+        if isinstance(f, DifferentialForm):
+            return self.wp(f)
+
+        # now scalar multiplication
         new_form = DifferentialForm(self.grad, self.basis)
 
         new_form.coeff = self.coeff * f
@@ -198,9 +221,8 @@ class DifferentialForm:
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
-        except ValueError:
-            print u'invalid Index'
-            return None
+        except ValueError, ve:
+            raise ValueError("Invalid Index; " + ve.message)
         else:
             return vz * self.coeff[ind_1d]
 
