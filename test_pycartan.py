@@ -65,6 +65,22 @@ class ExteriorAlgebraTests(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             x1 + dx2
 
+    def test_calculation2(self):
+        dx1, dx2, dx3, dx4, dx5 = self.dx
+        x1, x2, x3, x4, x5 = self.xx
+        pc = ct
+        k, u = sp.symbols('k, u')
+
+        w3 = dx3 - u*dx5
+        w4 = dx4 + ( - u*(-k - 1)*cos(x2) ) * dx5
+
+        K = (1+k)*cos(x2)  # Faktor
+        q1 = K*w3 + w4
+
+        test_c = q1.c[-1].simplify()  # this should be zero
+
+        self.assertEqual(test_c, 0)
+
     def test_exterior_derivative(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
         x1, x2, x3, x4, x5 = self.xx
@@ -205,6 +221,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(dw2, res2)
 
         # TODO: test with multiple calls to jet_ext_basis
+
 
 
 def main():

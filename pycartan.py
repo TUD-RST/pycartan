@@ -14,6 +14,7 @@ import itertools as it
 
 import symb_tools as st  # needed for make global, perform_time_derivative
 
+
 # # Vorzeichen einer Permutation
 # original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
 # -> durch vorherige Anwendung von 'range_indices' behoben
@@ -155,6 +156,7 @@ class DifferentialForm(CantSympify):
 
         new_form = DifferentialForm(self.grad, self.basis)
         new_form.coeff = self.coeff + a.coeff
+
 
         return new_form
 
