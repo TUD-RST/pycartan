@@ -20,7 +20,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_basics(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
-        self.assertEquals(dx1.basis, self.xx)
+        self.assertEquals(dx1.basis, sp.Matrix(self.xx))
         self.assertEquals(dx1.degree, 1)
         # TODO: add some more basics
 
@@ -222,6 +222,28 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         # TODO: test with multiple calls to jet_ext_basis
 
+    def test_dot(self):
+        x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        xx_tmp, ddx = ct.setup_objects(xx)
+
+        full_basis = list(xx) + list(xxd)
+        dxdot2 = ct.DifferentialForm(1, full_basis, [0,0,0, 0,1,0])
+
+        w1 = x3*dx2
+        with self.assertRaises(ValueError) as cm:
+            w1.dot()
+
+        w1.jet_extend_basis()
+        dx2.jet_extend_basis()
+        wdot1 = w1.dot()
+
+        self.assertEqual(wdot1, xdot3*dx2 + x3*dxdot2)
+
+
+
+
+        #print cm.exception
 
 
 def main():

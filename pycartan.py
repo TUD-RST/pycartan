@@ -107,7 +107,7 @@ class DifferentialForm(CantSympify):
         """
 
         self.grad = n
-        self.basis = basis
+        self.basis = sp.Matrix(basis)
         self.dim_basis = len(basis)
         # list of allowed indices
         if (self.grad == 0):
@@ -565,6 +565,55 @@ class DifferentialForm(CantSympify):
                 c = 0
             self.setitem(idx_tup, c)
 
+    def dot(self):
+        """
+        returns the time derivative of this n-form:
+
+        self = a*dx + 0*dy + 0*dxdot + 0*dydot
+        self.dot() == adot*dx + a*dxdot
+
+        currently only supported for 1-forms
+        """
+
+        if not self.degree == 1:
+            raise NotImplementedError(".dot only supported for degree = 1")
+
+        res = DifferentialForm(self.degree, self.basis)
+
+        # get nonzero coeffs and their indices
+        nz_tups = [(i, c) for i,c in enumerate(self.coeff) if c != 0]
+
+        # get corresponding coords
+        idcs, coeffs = zip(*nz_tups)
+        nz_coords = [self.basis[i] for i in idcs]
+        nz_coords_diff = [st.perform_time_derivative(c, self.basis) for c in nz_coords]
+        ds = set(nz_coords_diff).difference(self.basis)
+        if ds:
+            msg = "The thime derivative of this form cannot be calculated. "\
+                  "The following necessary coordinates are not part of self.basis: %s" % ds
+            raise ValueError(msg)
+
+        # get new indices:
+        basis_list = list(self.basis)
+        diff_idcs = [basis_list.index(c) for c in nz_coords_diff]
+
+        # replace the original coeff with its time derivative (adot*dx)
+        for i, c in zip(idcs, coeffs):
+            res[i] = st.perform_time_derivative(c, self.basis)
+
+        # set the original coeff to the corresponding place (a*dxdot)
+        for i, c in zip(diff_idcs, coeffs):
+            res[i] = c
+
+        return res
+
+    def count_ops(self, *args, **kwargs):
+        """Utility that returns a form of the same basis and degree as self
+        where the coeffs are numbers corresponding to the application of count_ops to self.coeff.
+        """
+
+        coeff_co = st.count_ops(self.coeff, *args, **kwargs)
+        return DifferentialForm(self.degree, self.basis, coeff=coeff_co)
 
 def pull_back(phi, args, omega):
     """
