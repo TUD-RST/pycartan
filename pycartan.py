@@ -565,7 +565,7 @@ class DifferentialForm(CantSympify):
                 c = 0
             self.setitem(idx_tup, c)
 
-    def dot(self):
+    def dot(self, additional_symbols=None):
         """
         returns the time derivative of this n-form:
 
@@ -573,10 +573,16 @@ class DifferentialForm(CantSympify):
         self.dot() == adot*dx + a*dxdot
 
         currently only supported for 1-forms
+
+        additional_symbols is an optional list of time_dependend symbols
         """
 
         if not self.degree == 1:
             raise NotImplementedError(".dot only supported for degree = 1")
+
+        if additional_symbols is None:
+            additional_symbols = []
+        additional_symbols = list(additional_symbols)
 
         res = DifferentialForm(self.degree, self.basis)
 
@@ -599,7 +605,7 @@ class DifferentialForm(CantSympify):
 
         # replace the original coeff with its time derivative (adot*dx)
         for i, c in zip(idcs, coeffs):
-            res[i] = st.perform_time_derivative(c, self.basis)
+            res[i] = st.perform_time_derivative(c, basis_list + additional_symbols)
 
         # set the original coeff to the corresponding place (a*dxdot)
         for i, c in zip(diff_idcs, coeffs):
