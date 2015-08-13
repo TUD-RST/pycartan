@@ -246,11 +246,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
         xxd = ct.st.perform_time_derivative(xx, xx)
+        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
 
-        full_basis = list(xx) + list(xxd)
+        full_basis = ct.st.row_stack(xx, xxd, xxdd)
         xx_tmp, ddx = ct.setup_objects(full_basis)
 
-        dxdot2 = ct.DifferentialForm(1, full_basis, [0,0,0, 0,1,0])
 
         w1 = a1*dx2
         wdot1_1 = w1.dot()
@@ -260,9 +260,10 @@ class ExteriorAlgebraTests(unittest.TestCase):
         wdot1_2 = w1.dot(aa)
         self.assertEqual(wdot1_2, adot1*dx2 + a1*dxdot2)
 
+        w2 = a1*dx2 + a2*dxdot2
+        wdot2_expected = adot1*dx2 + (a1 + adot2)*dxdot2 + a2 * dxddot2
 
-
-        #print cm.exception
+        self.assertEqual(wdot2_expected.coeff, w2.dot(aa).coeff)
 
 
 def main():

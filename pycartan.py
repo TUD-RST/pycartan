@@ -157,7 +157,6 @@ class DifferentialForm(CantSympify):
         new_form = DifferentialForm(self.grad, self.basis)
         new_form.coeff = self.coeff + a.coeff
 
-
         return new_form
 
     def __sub__(self, m):
@@ -584,7 +583,7 @@ class DifferentialForm(CantSympify):
             additional_symbols = []
         additional_symbols = list(additional_symbols)
 
-        res = DifferentialForm(self.degree, self.basis)
+        res = DifferentialForm(self.degree, self.basis)  # create a zero form
 
         # get nonzero coeffs and their indices
         nz_tups = [(i, c) for i,c in enumerate(self.coeff) if c != 0]
@@ -609,7 +608,7 @@ class DifferentialForm(CantSympify):
 
         # set the original coeff to the corresponding place (a*dxdot)
         for i, c in zip(diff_idcs, coeffs):
-            res[i] = c
+            res[i] += c
 
         return res
 
@@ -620,6 +619,11 @@ class DifferentialForm(CantSympify):
 
         coeff_co = st.count_ops(self.coeff, *args, **kwargs)
         return DifferentialForm(self.degree, self.basis, coeff=coeff_co)
+
+    @property
+    def co(self):
+        return self.count_ops()
+
 
 def pull_back(phi, args, omega):
     """
