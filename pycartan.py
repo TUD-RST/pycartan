@@ -294,13 +294,19 @@ class DifferentialForm(CantSympify):
         """property -> allows for short syntax: w1.d (= w1.diff())"""
         return self.diff()
 
-    def nonzero_tuples(self):
+    def nonzero_tuples(self, srn=False, eps=1e-30):
         """
-        returns a list of tuples (coeff, idcs) for each index tuple idcs,
+        returns a list of tuples (coeff, idcs) for each index-tuple idcs,
         where the corresponding coeff != 0
         """
-        Z = zip(self.coeff, self.indizes)
-        res = [(c, idcs) for (c, idcs) in Z if c != 0]
+        Z = zip(self.coeff, self.indices)
+
+        if srn == "prime":
+            res = [(c, idcs) for (c, idcs) in Z if abs(st.subs_random_numbers(c, prime=True)) > eps]
+        elif srn:
+            res = [(c, idcs) for (c, idcs) in Z if abs(st.subs_random_numbers(c)) > eps]
+        else:
+            res = [(c, idcs) for (c, idcs) in Z if c != 0]
 
         return res
 
@@ -386,6 +392,48 @@ class DifferentialForm(CantSympify):
 
         coeff, idcs = nzi[0]
         res = self[idcs] / coeff
+
+        return res
+
+    def get_component(self, arg):
+        """
+        Returns the decomposable component, corresponding to `arg`
+
+        arg:    either a basis-component or an appropriate index-tuple
+
+        Let self == 7*dx^dy + 3*y*dx^dz (2-form over basis x, y, z)
+        self.get_component(dx^dz) -> 3*y*dx^dz
+        """
+
+        if isinstance(arg, (list, tuple, st.np.ndarray)):
+            arg = tuple(arg)
+            if not arg in self.indices:
+                msg = "Invalid index-tuple: " + str(arg)
+                raise ValueError(msg)
+            res_idcs = arg
+
+        else:
+            assert isinstance(arg, DifferentialForm)
+            if not arg.degree == self.degree:
+                msg = "Wrong degree (%i instead of %i)" % (arg.degree, self.degree)
+                raise ValueError(msg)
+
+            # arg should be decomposable -> only one nonzero tuple
+            nzt = arg.nonzero_tuples()
+
+            if not len(nzt) == 1:
+                msg = "Unexpeced (not decomposable) form supplied. Only base-forms are supported"
+                raise ValueError(msg)
+
+            # additionally: coeff should be 1
+            if not nzt[0][0] == 1:
+                msg = "Unexpeced form supplied. Only base-forms are supported. Coeff != 1"
+                raise ValueError(msg)
+
+            res_idcs = nzt[0][1]
+
+        res = self*0
+        res[res_idcs] = self[res_idcs]
 
         return res
 

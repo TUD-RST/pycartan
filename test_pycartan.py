@@ -9,6 +9,7 @@ import unittest
 import sympy as sp
 from sympy import sin, cos, exp
 
+import symb_tools as st
 from pycartanlib import pycartan as ct
 
 from IPython import embed as IPS
@@ -264,6 +265,44 @@ class ExteriorAlgebraTests(unittest.TestCase):
         wdot2_expected = adot1*dx2 + (a1 + adot2)*dxdot2 + a2 * dxddot2
 
         self.assertEqual(wdot2_expected.coeff, w2.dot(aa).coeff)
+
+    def test_get_component(self):
+
+        x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
+        xx, dxx = ct.setup_objects(xx)
+        dx1, dx2, dx3 = dxx
+
+        W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
+
+        res1 = W.get_component(dx1^dx2)
+        self.assertEqual(res1, 7*dx1^dx2)
+
+        res2 = W.get_component(dx2^dx3)
+        self.assertEqual(res2, 0*dx1^dx2)
+
+        res3 = W.get_component(dx1^dx3)
+        self.assertEqual(res3, 3*x2*dx1^dx3)
+
+        res4 = W.get_component((0, 1))
+        self.assertEqual(res4, 7*dx1^dx2)
+
+        res5 = W.get_component((0, 2))
+        self.assertEqual(res5, 3*x2*dx1^dx3)
+
+        res6 = W.get_component((1, 2))
+        self.assertEqual(res6, 0*dx1^dx3)
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_component(dx1)
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_component(x2*dx1^dx2)
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_component(dx2^dx1)
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_component((1, 0))
 
 
 def main():
