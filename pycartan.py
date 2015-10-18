@@ -14,6 +14,8 @@ import itertools as it
 
 import symb_tools as st  # needed for make global, perform_time_derivative
 
+from IPython import embed as IPS
+
 
 # # Vorzeichen einer Permutation
 # original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
@@ -395,6 +397,16 @@ class DifferentialForm(CantSympify):
 
         return res
 
+    def get_coeff_from_idcs(self, idcs):
+        """
+        Abstraction wrapper for self.__getitem__
+
+        :param idcs:
+        :return:
+        """
+
+        return self[idcs]
+
     def get_component(self, arg):
         """
         Returns the decomposable component, corresponding to `arg`
@@ -673,6 +685,148 @@ class DifferentialForm(CantSympify):
         return self.count_ops()
 
 
+def coeff_ido_derivorder(sigma, *factors, **kwargs):
+    """
+    Calulate the coefficient corresponding to the N-tuple sigma of the N-form Mu_k
+    in dependence of the derivative order k, where Mu_k denotes
+    mu_1_(k)^mu_2_(k)^...^mu_N_(k) and mu_i_(k) denotes the k-th
+    time-derivative of the 1-form mu_i.
+
+    :param sigma:       index tuple (length N)
+    :param factors:     n-tuple of 1-forms (mu1, mu2, ...)
+    :return:            special coeff (see description)
+
+    optional parameters:
+    :do_symbol:         symbol for the derivative order in the result
+    :tds:               time dependend symbols (used for mu_i.dot(tds) )
+
+
+    How this is done:
+    Step 1:
+    Replace every entry in mu_i.coeff by a unique symbol S_j (dependent on time) and
+    denote the resulting 1-form by zeta_i.
+
+    Step 2:
+    For every i in {1, ... , n} calc zeta_i.dot().
+
+    Step 3:
+    Calc Z := zeta_1.dot()^zeta_2.dot()^...^zeta_N.dot().
+
+
+    Step 4:
+    # TODO: this is obsolete:
+    Assume that for all mu_i we have something like: mu.basis = [x1, ..., xn, xdot1, ....]
+    (i.e. n is the number of basis-variables x1, ..., xn, which occur in
+    several derivative orders).
+    Extract the coefficient "c_res0" of Z, corresponding to sigma (elementwise addition).
+
+    Step 5:
+    In c_res0 replace the symbols "S_dot" by k*S_dot.
+    Denote the resulting expression by c_res1.
+
+    Step 6:
+    In c_res1 replace all symbols in S and S_dot by their corresponding
+    expression from the original 1-forms mu_i. Denote the result by c_res2
+
+    Return c_res(2)
+
+    Note: The result is only correct for some coefficients.
+    In all other cases a ValueError is raised -> Step 0:
+    """
+
+    assert len(sigma) == len(factors) > 0
+
+    tds = kwargs.get('tds', [])
+    tds = list(tds)
+
+    basis = factors[0].basis
+
+    # Step 0 (and consistency checking):
+    # determine the derivative orders of the basis-symbols
+    deriv_orders = [bs.difforder for bs in basis]
+    min_do = min(deriv_orders)  # usually will be 0
+    max_do = max(deriv_orders)
+
+    msg = "This function assumes more than one derivative order!"
+    assert (min_do + 1) in deriv_orders, msg
+    n = deriv_orders.index(min_do + 1)
+    assert len(deriv_orders) % n == 0
+    #groups = []
+    for i in range(len(deriv_orders)/n):
+        tmp_group = deriv_orders[n*i: n*(i+1)]
+        msg2 = "All group elements are expected to be identical"
+        assert all( elt == tmp_group[0] for elt in tmp_group), msg2
+
+    msg3 = "Unexpected distribution of derivorders (like e.g. [0,0,2,2]): "
+    msg3 += str(deriv_orders)
+    assert (max_do - min_do + 1)*n == len(deriv_orders), msg3
+
+    for idx in sigma:
+        do = deriv_orders[idx]
+        msg4 = "Only indices which correspond to the highest or second highest "\
+               "deriv_order are allowed in sigma."
+        assert do in (max_do, max_do - 1), msg4
+
+    zeta_dot_list = []
+    gen_S = sp.numbered_symbols('S')
+
+    replacements_S = []
+    S_list = []
+    Z = 1  # 0-form
+
+    # Step 1 and Step 2 and Step 3:
+
+    for mu in factors:
+
+        assert isinstance(mu, DifferentialForm)
+        assert mu.degree == 1
+        assert mu.basis == basis
+
+        # -> Step 1:
+        zeta = mu*0  # make an empty 1-form
+
+        for i, c in enumerate(mu.coeff):
+            if st.is_number(c):
+                continue
+
+            S_tmp = gen_S.next()
+            replacements_S.append( (S_tmp, c) )
+            S_list.append(S_tmp)
+            zeta.coeff[i] = S_tmp
+
+        # -> Step 2
+        zeta_dot = zeta.dot(S_list)
+        zeta_dot_list.append(zeta_dot)
+
+        # -> Step 3 (recursively)
+        Z = Z*zeta_dot
+
+    # Step 4:
+    #sigma_plus_nn = tuple((elt + n for elt in sigma))
+
+    c_res0 = Z.get_coeff_from_idcs(sigma)
+
+    # Step 5:
+    default_do_symbol = sp.Symbol('l')
+    do_symbol = kwargs.get('do_symbol', default_do_symbol)
+    S_vector = sp.Matrix(S_list)
+    S_dot_vector = st.perform_time_derivative(S_vector, S_vector)
+
+    c_res1 = c_res0.subs(zip(S_dot_vector, do_symbol*S_dot_vector))
+
+    # Step 6
+    # constructing the whole replacement structure
+    S_repl_matrix = sp.Matrix(replacements_S)  # two columns: symbols, expressions
+    tds2 = tds + S_list + list(basis)
+    S_repl_matrix_dot = st.perform_time_derivative(S_repl_matrix, tds2)
+
+    all_replmts = S_repl_matrix_dot.tolist() + replacements_S
+
+    c_res2 = c_res1.subs(all_replmts)
+
+    return c_res2, do_symbol
+
+
 def pull_back(phi, args, omega):
     """
     computes the pullback phi^* omega for a given mapping phi between
@@ -700,8 +854,9 @@ def pull_back(phi, args, omega):
 
 def _contract_vf_with_basis_form(vf, idx_tuple):
     """
-    calculate (v˩A) where A is a basisform (like dx0^dx3^dx4) which
-    is represented by an index tuple (like (0,3,4))
+    calculate (v˩A) where v is a vector field and A is a
+    basisform (like dx0^dx3^dx4) which is represented by
+    an index tuple (like (0,3,4))
 
     returns a list of result tuples (coeff, idcs)
     where coeff is the resulting coefficient and idcs are the

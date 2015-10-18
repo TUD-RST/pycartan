@@ -39,6 +39,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         # here we test the `*` operator which was extended to DifferentialForms
         # after `^`
 
+        x1, x2, x3, x4, x5 = self.xx
         dx1, dx2, dx3, dx4, dx5 = self.dx
         self.assertEquals(dx1*dx2, dx1.wp(dx2))
         self.assertEquals(dx5*dx2, - dx2^dx5)
@@ -227,6 +228,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
         xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
         xx_tmp, ddx = ct.setup_objects(xx)
+        dx1, dx2, dx3 = ddx
 
         full_basis = list(xx) + list(xxd)
         dxdot2 = ct.DifferentialForm(1, full_basis, [0,0,0, 0,1,0])
@@ -251,6 +253,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         full_basis = ct.st.row_stack(xx, xxd, xxdd)
         xx_tmp, ddx = ct.setup_objects(full_basis)
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
 
         w1 = a1*dx2
@@ -265,6 +268,25 @@ class ExteriorAlgebraTests(unittest.TestCase):
         wdot2_expected = adot1*dx2 + (a1 + adot2)*dxdot2 + a2 * dxddot2
 
         self.assertEqual(wdot2_expected.coeff, w2.dot(aa).coeff)
+
+    def test_dot3(self):
+        xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xxd = ct.st.perform_time_derivative(xx, xx)
+        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+
+
+        full_basis = ct.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = ct.setup_objects(full_basis)
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
+
+        aa = sp.Matrix(sp.symbols("a1:3"))
+        a1, a2 = aa
+
+        mu1 = a1*dxdot1 + 3*a2*dx2
+
+        mu1.dot()
+        # this once was a bug:
+        self.assertEqual(xxdd[0].difforder, 2)
 
     def test_get_component(self):
 
@@ -303,6 +325,50 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             res = W.get_component((1, 0))
+
+    def test_coeff_ido_do(self):
+        x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xxd = ct.st.perform_time_derivative(xx, xx)
+        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+
+
+        full_basis = ct.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = ct.setup_objects(full_basis)
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
+
+        aa = sp.Matrix(sp.symbols("a1:10"))
+        a1, a2, a3, a4, a5, a6, a7, a8, a9 = aa
+        aad = ct.st.perform_time_derivative(aa, aa)
+        #adot1, adot2, adot3 =\
+
+        mu1 = a1*dxdot1 + 3*a2*dx2
+        mu2 = a3*dxdot2 - a4*dx1 + 6*a5*dx2
+        mu3 = 7*a6*x1*dxdot3 + a7*dx3
+
+        Mu_0 = mu1^mu2^mu3
+        Mu_1 = mu1.dot(aa)^mu2.dot(aa)^mu3.dot(aa)
+        # this once was a bug:
+        self.assertEqual(xxdd[0].difforder, 2)
+
+        sigma1 = (6, 7, 8)
+
+        c_star = a1*a3*a6*x1*7
+
+        # consistency check for local calculations
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), c_star)
+
+        # in the following dos means difforder symbol
+        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3)
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1)
+
+        sigma2 = (5, 7, 8)
+        res2, dos = ct.coeff_ido_derivorder(sigma2, mu1, mu2, mu3)
+        self.assertEqual(res2, 0)
+
+        sigma3 = (5, 6, 7)
+        res3, dos = ct.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
+        assert res3.has(dos)
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
 
 def main():
