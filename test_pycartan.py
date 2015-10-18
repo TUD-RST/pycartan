@@ -375,6 +375,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         Mu_0 = mu1^mu2^mu3
         Mu_1 = mu1.dot(aa)^mu2.dot(aa)^mu3.dot(aa)
+
         # this once was a bug:
         self.assertEqual(xxdd[0].difforder, 2)
 
@@ -397,6 +398,19 @@ class ExteriorAlgebraTests(unittest.TestCase):
         res3, dos = ct.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
         assert res3.has(dos)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
+
+        mu1.jet_extend_basis()
+        mu2.jet_extend_basis()
+        mu3.jet_extend_basis()
+
+        Mu_2 = mu1.dot(aa).dot(aa)^mu2.dot(aa).dot(aa)^mu3.dot(aa).dot(aa)
+        sigma4 = (5+3, 6+3, 7+3)
+        res4 = Mu_2.get_coeff_from_idcs(sigma4)
+        self.assertEqual(res4, res3.subs(dos, 2))
+
+        with self.assertRaises(ValueError) as cm:
+            sigma5 = (1, 6, 7)
+            ct.coeff_ido_derivorder(sigma5, mu1, mu2, mu3, tds=aa)
 
 
 def main():

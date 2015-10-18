@@ -766,9 +766,10 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
 
     for idx in sigma:
         do = deriv_orders[idx]
-        msg4 = "Only indices which correspond to the highest or second highest "\
-               "deriv_order are allowed in sigma."
-        assert do in (max_do, max_do - 1), msg4
+        if not do in (max_do, max_do - 1):
+            msg4 = "Only indices which correspond to the highest or second highest "\
+                   "deriv_order are allowed in sigma."
+            raise ValueError(msg4)
 
     zeta_dot_list = []
     gen_S = sp.numbered_symbols('S')
