@@ -583,6 +583,9 @@ class DifferentialForm(CantSympify):
 
         assert old_basis.shape[1] == 1
 
+        if order != 1:
+            raise NotImplementedError("Not yet done.")
+
         # we need to determine which are the symbols, corresponding to
         # the 0th order coordinates
         # in the future this will be done by checking a special attribute
@@ -593,7 +596,7 @@ class DifferentialForm(CantSympify):
             zoh = sp.Matrix(zero_order_hint)
         else:
             # assume, we only have 0th order
-            zoh = old_basis
+            zoh = sp.Matrix([elt for elt in self.basis if elt.difforder == 0])
 
         L = len(zoh)
         assert zoh.shape[1] == 1

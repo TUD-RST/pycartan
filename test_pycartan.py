@@ -224,6 +224,34 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         # TODO: test with multiple calls to jet_ext_basis
 
+    def test_jet_extend_basis1(self):
+        x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
+        xx_tmp, ddx = ct.setup_objects(xx)
+
+        self.assertTrue(xx is xx_tmp)
+
+        # get the individual forms
+        dx1, dx2, dx3 = ddx
+
+        dx1.jet_extend_basis()
+        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+
+        full_basis = st.row_stack(xx, xxd, xxdd)
+
+        foo, ddX = ct.setup_objects(full_basis)
+
+        dx1.jet_extend_basis()
+        self.assertEqual(ddX[0].basis, dx1.basis)
+        self.assertEqual(ddX[0].coeff, dx1.coeff)
+
+        half_basis = st.row_stack(xx, xxd)
+        foo, ddY = ct.setup_objects(half_basis)
+
+        dx2.jet_extend_basis()
+        self.assertEqual(ddY[1].basis, dx2.basis)
+        self.assertEqual(ddY[1].coeff, dx2.coeff)
+
     def test_dot(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
         xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
