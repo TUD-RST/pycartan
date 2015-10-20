@@ -316,7 +316,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         # this once was a bug:
         self.assertEqual(xxdd[0].difforder, 2)
 
-    def test_get_component(self):
+    def test_get_multiplied_baseform(self):
 
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
         xx, dxx = ct.setup_objects(xx)
@@ -324,35 +324,72 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
 
-        res1 = W.get_component(dx1^dx2)
+        res1 = W.get_multiplied_baseform(dx1^dx2)
         self.assertEqual(res1, 7*dx1^dx2)
 
-        res2 = W.get_component(dx2^dx3)
+        res2 = W.get_multiplied_baseform(dx2^dx3)
         self.assertEqual(res2, 0*dx1^dx2)
 
-        res3 = W.get_component(dx1^dx3)
+        res3 = W.get_multiplied_baseform(dx1^dx3)
         self.assertEqual(res3, 3*x2*dx1^dx3)
 
-        res4 = W.get_component((0, 1))
+        res4 = W.get_multiplied_baseform((0, 1))
         self.assertEqual(res4, 7*dx1^dx2)
 
-        res5 = W.get_component((0, 2))
+        res5 = W.get_multiplied_baseform((0, 2))
         self.assertEqual(res5, 3*x2*dx1^dx3)
 
-        res6 = W.get_component((1, 2))
+        res6 = W.get_multiplied_baseform((1, 2))
         self.assertEqual(res6, 0*dx1^dx3)
 
         with self.assertRaises(ValueError) as cm:
-            res = W.get_component(dx1)
+            res = W.get_multiplied_baseform(dx1)
 
         with self.assertRaises(ValueError) as cm:
-            res = W.get_component(x2*dx1^dx2)
+            res = W.get_multiplied_baseform(x2*dx1^dx2)
 
         with self.assertRaises(ValueError) as cm:
-            res = W.get_component(dx2^dx1)
+            res = W.get_multiplied_baseform(dx2^dx1)
 
         with self.assertRaises(ValueError) as cm:
-            res = W.get_component((1, 0))
+            res = W.get_multiplied_baseform((1, 0))
+
+    def test_get_baseform(self):
+
+        x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
+        xx, dxx = ct.setup_objects(xx)
+        dx1, dx2, dx3 = dxx
+
+        W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
+
+        res1 = W.get_baseform_from_idcs((0, 1))
+        self.assertEqual(res1, dx1^dx2)
+
+        idcs_matrix = sp.Matrix([0, 2])
+        res2 = W.get_baseform_from_idcs(idcs_matrix)
+        self.assertEqual(res2, dx1^dx3)
+
+        idcs_array = st.np.array([0, 2])
+        res2b = W.get_baseform_from_idcs(idcs_array)
+        self.assertEqual(res2b, dx1^dx3)
+
+        res3 = W.get_baseform_from_idcs((1, 2))
+        self.assertEqual(res3, dx2^dx3)
+
+        Z = dx1 + x3**2*dx2
+
+        res4 = Z.get_baseform_from_idcs((1, ))
+        self.assertEqual(res4, dx2)
+
+        res5 = Z.get_baseform_from_idcs(2)
+        self.assertEqual(res5, dx3)
+
+        with self.assertRaises(TypeError) as cm:
+            res = W.get_baseform_from_idcs(dx1)
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_baseform_from_idcs((0, 0))
+        
 
     def test_coeff_ido_do(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
@@ -387,11 +424,16 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), c_star)
 
         # in the following dos means difforder symbol
-        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3)
+        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1)
 
+        # test array type for sigma
+        sigma_arr = ct.np.array([6.0, 7.0, 8.0])
+        res1b, dos = ct.coeff_ido_derivorder( sigma_arr, mu1, mu2, mu3, tds=aa)
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1b)
+
         sigma2 = (5, 7, 8)
-        res2, dos = ct.coeff_ido_derivorder(sigma2, mu1, mu2, mu3)
+        res2, dos = ct.coeff_ido_derivorder(sigma2, mu1, mu2, mu3, tds=aa)
         self.assertEqual(res2, 0)
 
         sigma3 = (5, 6, 7)
@@ -411,6 +453,47 @@ class ExteriorAlgebraTests(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             sigma5 = (1, 6, 7)
             ct.coeff_ido_derivorder(sigma5, mu1, mu2, mu3, tds=aa)
+
+    def test_coeff_ido_do2(self):
+        x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xxd = ct.st.perform_time_derivative(xx, xx)
+
+        full_basis = ct.st.row_stack(xx, xxd)
+        foo, ddx = ct.setup_objects(full_basis)
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3 = ddx
+
+        aa = sp.Matrix(sp.symbols("a1:10"))
+        a1, a2, a3, a4, a5, a6, a7, a8, a9 = aa
+
+        mu1 = a1*dxdot1 + 3*a2*dx2
+        mu2 = a3*dxdot2 - a4*dx1 + 6*a5*dx2
+        mu3 = 7*a6*x1*dxdot3 + a7*dx3
+
+        sigma1 = (6, 7, 8)
+        sigma1b = (6+3, 7+3, 8+3)
+
+        sigma3 = (5, 6, 7)
+
+        with self.assertRaises(ValueError) as cm:
+            # the indices are too high
+            ct.coeff_ido_derivorder(sigma1b, mu1, mu2, mu3)
+
+        # important to call this before mu_i.jet_extend_basis()
+        res2, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
+        res3, dos = ct.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
+
+        mu1.jet_extend_basis()
+        mu2.jet_extend_basis()
+        mu3.jet_extend_basis()
+
+        Mu_0 = mu1^mu2^mu3
+        Mu_1 = mu1.dot(aa)^mu2.dot(aa)^mu3.dot(aa)
+
+        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3)
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res2)
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1)
+
+        self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
 
 def main():

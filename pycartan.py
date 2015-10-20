@@ -407,9 +407,42 @@ class DifferentialForm(CantSympify):
 
         return self[idcs]
 
-    def get_component(self, arg):
+    def get_baseform_from_idcs(self, idcs):
         """
-        Returns the decomposable component, corresponding to `arg`
+        Expects an N-tuple of integers and returns the baseform of self corresponding
+        to that index tuple.
+
+        :param idcs:
+        :return:
+        """
+
+        if not isinstance(idcs, (int, list, tuple, sp.Matrix, st.np.ndarray)):
+            msg = "Expected tuple of integers, got: %s" % type(idcs)
+            raise TypeError(msg)
+
+        if isinstance(idcs, int):
+            idcs = (idcs, )
+
+        idcs = tuple(idcs)
+
+        if not len(idcs) == self.degree:
+            msg = "Expected index tuple of lenght %i but got length %i"
+            msg = msg % (self.degree, len(idcs))
+            raise ValueError(msg)
+
+        if not idcs in self. indices:
+            msg = "Got unexpexted index tuple: %s" % str(idcs)
+            raise ValueError(msg)
+
+        res = DifferentialForm(self.degree, self.basis)
+        res[idcs] = 1
+
+        return res
+
+    def get_multiplied_baseform(self, arg):
+        """
+        Returns the baseform multiplied with the appropriate element of `self.coeff`,
+        corresponding to `arg`
 
         arg:    either a basis-component or an appropriate index-tuple
 
@@ -764,12 +797,32 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
     msg3 += str(deriv_orders)
     assert (max_do - min_do + 1)*n == len(deriv_orders), msg3
 
+    if isinstance(sigma, np.ndarray):
+        sigma = tuple(int(idx) for idx in sigma)
+    assert sigma == tuple(sorted(sigma))
+
+    extended_deriv_orders = deriv_orders + [max_do + 1]*n
+    deriv_orders_of_sigma = []
+
     for idx in sigma:
-        do = deriv_orders[idx]
-        if not do in (max_do, max_do - 1):
-            msg4 = "Only indices which correspond to the highest or second highest "\
-                   "deriv_order are allowed in sigma."
+        if idx >= len(extended_deriv_orders):
+            msg4 = "Uexpected high index in sigma: %s." % str(sigma)
             raise ValueError(msg4)
+
+        deriv_orders_of_sigma.append( extended_deriv_orders[idx] )
+
+    # do we need to call jet_extend_basis onb the factors?
+    cond1 = all( idx in (max_do, max_do - 1) for idx in deriv_orders_of_sigma)
+    cond2 = all( idx in (max_do + 1, max_do) for idx in deriv_orders_of_sigma)
+
+    if cond1:
+        jeb_flag = False
+    elif cond2:
+        jeb_flag = True
+    else:
+        msg5 = "Only indices which correspond to the highest or second highest "\
+               "deriv_order are allowed in sigma."
+        raise ValueError(msg5)
 
     zeta_dot_list = []
     gen_S = sp.numbered_symbols('S')
@@ -780,17 +833,23 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
 
     # Step 1 and Step 2 and Step 3:
 
-    for mu in factors:
+    for i, mu in enumerate(factors):
 
-        assert isinstance(mu, DifferentialForm)
+        assert isinstance(mu, DifferentialForm), "not a form: %i" % i
         assert mu.degree == 1
         assert mu.basis == basis
 
         # -> Step 1:
         zeta = mu*0  # make an empty 1-form
 
+        if jeb_flag:
+            zeta.jet_extend_basis()
+            mu = mu*1 # make a copy
+            mu.jet_extend_basis()
+
         for i, c in enumerate(mu.coeff):
             if st.is_number(c):
+                zeta.coeff[i] = c
                 continue
 
             S_tmp = gen_S.next()
