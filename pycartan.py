@@ -438,6 +438,19 @@ class DifferentialForm(CantSympify):
         res[idcs] = 1
 
         return res
+        
+    def get_baseform_from_plain_index(self, idx):
+        """
+        returns the i-th baseform (corresponding to the i-th element of
+        self.coeff)
+        """
+        assert int(idx) == idx
+        N = self.num_coeff
+        if not -N <= idx < N:
+            raise ValueError("%i not in range [0, ..., %i]" %(idx, N-1) )
+        
+        idx_tup = self.indices[idx]
+        return self.get_baseform_from_idcs(idx_tup)
 
     def get_multiplied_baseform(self, arg):
         """

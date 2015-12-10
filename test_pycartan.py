@@ -389,6 +389,35 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             res = W.get_baseform_from_idcs((0, 0))
+
+    def test_get_baseform_from_plain_index(self):
+        x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
+        xx, dxx = ct.setup_objects(xx)
+        dx1, dx2, dx3 = dxx
+
+        W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
+
+        res = W.get_baseform_from_plain_index(0)
+        self.assertEqual(res, dx1^dx2)
+        
+        res = W.get_baseform_from_plain_index(2)
+        self.assertEqual(res, dx2^dx3)
+        
+        res = W.get_baseform_from_plain_index(-1)
+        self.assertEqual(res, dx2^dx3)
+        
+        res = W.get_baseform_from_plain_index(-2)
+        self.assertEqual(res, dx1^dx3)
+        
+        res = W.get_baseform_from_plain_index(-3)
+        self.assertEqual(res, dx1^dx2)
+
+
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_baseform_from_plain_index(3)
+            
+        with self.assertRaises(ValueError) as cm:
+            res = W.get_baseform_from_plain_index(-4)
         
 
     def test_coeff_ido_do(self):
