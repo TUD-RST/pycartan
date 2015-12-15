@@ -12,7 +12,7 @@ import sympy as sp
 from sympy.core.sympify import CantSympify
 import itertools as it
 
-import symb_tools as st  # needed for make global, perform_time_derivative
+import symb_tools as st  # needed for make global, perform_time_derivative, srn
 
 from IPython import embed as IPS
 
@@ -732,6 +732,10 @@ class DifferentialForm(CantSympify):
     @property
     def co(self):
         return self.count_ops()
+        
+    @property
+    def srn(self):
+        return self.coeff.srn
 
 
 def coeff_ido_derivorder(sigma, *factors, **kwargs):
