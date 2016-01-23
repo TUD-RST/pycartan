@@ -316,6 +316,42 @@ class ExteriorAlgebraTests(unittest.TestCase):
         # this once was a bug:
         self.assertEqual(xxdd[0].difforder, 2)
 
+    def test_dot_2form(self):
+        xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        xxd = ct.st.perform_time_derivative(xx, xx)
+        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+
+        XX = ct.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = ct.setup_objects(XX)
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
+
+        a1, a2 = aa = sp.Matrix(sp.symbols("a1:3"))
+        adot1, adot2 = aadot = st.perform_time_derivative(aa, aa)
+        b1, b2 = bb = sp.Matrix(sp.symbols("b1:3"))
+
+        z = dx1^dx2
+        res = z.dot()
+        # Caution: using * instead of ^ because of pythons operator precedence (+ before ^)
+        self.assertEqual(res, dxdot1*dx2 + dx1*dxdot2)
+
+        z = 0*dx1^dx2
+        res = z.dot()
+        self.assertEqual(res, z)
+
+        z = a1*dx1^dx2
+        res = z.dot(additional_symbols=aa)
+        self.assertEqual(res, adot1*dx1*dx2 + a1*dxdot1*dx2 + a1*dx1*dxdot2)
+
+        z = a1*dxdot1^dx2
+        res = z.dot(additional_symbols=aa)
+        self.assertEqual(res, adot1*dxdot1*dx2 + a1*dxddot1*dx2 + a1*dxdot1*dxdot2)
+
+        z = a1*dx1*dx2 + a2*dxdot1*dx2
+        res = z.dot(additional_symbols=aa)
+        exp_res = adot1*dx1*dx2 + (a1 + adot2)*dxdot1*dx2 + a1*dx1*dxdot2 + a2*dxdot1*dxdot2 +\
+                  a2*dxddot1*dx2
+        self.assertEqual(res, exp_res)
+
     def test_get_multiplied_baseform(self):
 
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")

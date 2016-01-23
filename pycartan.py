@@ -680,13 +680,28 @@ class DifferentialForm(CantSympify):
         self = a*dx + 0*dy + 0*dxdot + 0*dydot
         self.dot() == adot*dx + a*dxdot
 
-        currently only supported for 1-forms
+        currently only supported for 1- and 2-forms
 
-        additional_symbols is an optional list of time_dependend symbols
+        additional_symbols is an optional list of time_dependent symbols
         """
 
-        if not self.degree == 1:
-            raise NotImplementedError(".dot only supported for degree = 1")
+        if not self.degree <= 2:
+            raise NotImplementedError(".dot only tested for degree <= 2, might work however")
+
+        # Ensure that some structural assumptions for self.basis hold
+        # i.e. basis = [x1, x2, x3, xdot1, xdot2, xdot3]
+        diff_order_list = [b.difforder for b in self.basis]
+        do_max = max(diff_order_list)
+        base_length = int(self.dim_basis / (do_max + 1)  )
+        # base_length ≙ 3 in the above example
+
+        expected_diff_order_list = [int(k/base_length) for k in range(self.dim_basis)]
+
+        if not diff_order_list == expected_diff_order_list:
+            msg = "the structure of the basis variables is not like expected. \n"
+            msg += "Got:      %s\n" % diff_order_list
+            msg += "Expected: %s\n" % expected_diff_order_list
+            raise ValueError(msg)
 
         if additional_symbols is None:
             additional_symbols = []
@@ -695,12 +710,29 @@ class DifferentialForm(CantSympify):
         res = DifferentialForm(self.degree, self.basis)  # create a zero form
 
         # get nonzero coeffs and their indices
-        nz_tups = [(i, c) for i,c in enumerate(self.coeff) if c != 0]
+        nz_tups = [(idx_tup, c) for idx_tup, c in zip(self.indices, self.coeff) if c != 0]
+
+        if len(nz_tups) == 0:
+            # this form is already zero
+            # -> return a copy
+            return 0*self
+
+        idx_tups, coeffs = zip(*nz_tups)
+        # idx_tups = e.g. [(1, 4), ...] (2-Form) or [(0,), (2,), ....] (1-Form)
+
+        # nested list comprehension http://stackoverflow.com/a/952952/333403
+        flat_nonzero_idcs = [i for idx_tup in idx_tups for i in idx_tup]
+
+        # reduce duplicates
+        flat_nonzero_idcs = list(set(flat_nonzero_idcs))
+        flat_nonzero_idcs.sort()
 
         # get corresponding coords
-        idcs, coeffs = zip(*nz_tups)
-        nz_coords = [self.basis[i] for i in idcs]
+
+        nz_coords = [self.basis[i] for i in flat_nonzero_idcs]
         nz_coords_diff = [st.perform_time_derivative(c, self.basis) for c in nz_coords]
+
+        # difference set
         ds = set(nz_coords_diff).difference(self.basis)
         if ds:
             msg = "The thime derivative of this form cannot be calculated. "\
@@ -709,15 +741,26 @@ class DifferentialForm(CantSympify):
 
         # get new indices:
         basis_list = list(self.basis)
-        diff_idcs = [basis_list.index(c) for c in nz_coords_diff]
+        #diff_idcs = [basis_list.index(c) for c in nz_coords_diff]
 
-        # replace the original coeff with its time derivative (adot*dx)
-        for i, c in zip(idcs, coeffs):
-            res[i] = st.perform_time_derivative(c, basis_list + additional_symbols)
+        # assume self = a*dx1^dx3
+        # result: self.dot = adot*dx1^dx3 + a*dxdot1^dx3 + a*dx1^dxdot3
 
-        # set the original coeff to the corresponding place (a*dxdot)
-        for i, c in zip(diff_idcs, coeffs):
-            res[i] += c
+        # replace the original coeff with its time derivative (adot*dx1^dx3)
+        for idcs, c in zip(idx_tups, coeffs):
+            res[idcs] = st.perform_time_derivative(c, basis_list + additional_symbols)
+
+        # now for every coordinate find the basis-index of its derivative, e.g.
+        # if basis is x1, x2, x3 the index of xdot2 is 4
+        # set the original coeff to the corresponding place (a*dxdot1^dx3 + a*dx1^dxdot3)
+        for idx_tup, c in zip(idx_tups, coeffs):
+            for j, idx in enumerate(idx_tup):
+                # convert to mutable data type (list instead of tuple)
+                idx_list = list(idx_tup)
+                idx_list[j] += base_length  # convert x3 to xdot3
+
+                # add the coeff
+                res[idx_list] += c
 
         return res
 
