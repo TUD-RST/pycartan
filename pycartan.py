@@ -150,7 +150,8 @@ class DifferentialForm(CantSympify):
         return self.indizes
 
     def __repr__(self):
-        return self.ausgabe()
+        #return self.ausgabe()
+        return self.to_str()
 
     def __add__(self, a):
         assert self.grad == a.grad
@@ -497,6 +498,32 @@ class DifferentialForm(CantSympify):
 
     # TODO: Refactoring
     # Differentialform ausgeben
+
+    def _idcs_to_str(self, idcs):
+        """convert an index tuple like (0, 2, 3) into an string like "dx1^dx3^dx4"
+        """
+
+        coord_strings = ["d"+ (self.basis[i]).name for i in idcs]
+        product_string = "^".join(coord_strings)
+        return product_string
+
+
+    def to_str(self):
+        if self.grad == 0:
+            return str(self.coeff[0])
+        nztuples = [(idcs, coeff) for idcs, coeff in zip(self.indices, self.coeff) if coeff != 0]
+
+        res_strings = []
+        for idcs, coeff in nztuples:
+            tmp_str = "(%s)%s" %(str(coeff), self._idcs_to_str(idcs) )
+            res_strings.append(tmp_str)
+
+        if len(res_strings) == 0:
+            res = "(0)%s" % self._idcs_to_str(self.indices[0])
+        else:
+            res = "  +  ".join(res_strings)
+        return res
+
     def ausgabe(self):
         # 0-Form separat
         if self.grad == 0:

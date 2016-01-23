@@ -119,10 +119,16 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_string_representation(self):
         a, f, r = sp.symbols('a, f, r')
-        (x1, x2, r), (dx1, dx2, dr) = ct.diffgeo_setup(3)
+        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
 
         s1 = str(dx1)
-        self.assertEqual(s1, '(1) dx1')
+        self.assertEqual(s1, '(1)dx1')
+
+        s1 = str(0*dx2)
+        self.assertEqual(s1, '(0)dx1')
+
+        s1 = str(7*a*dx1*dx2 - dx2*dx3)
+        self.assertEqual(s1, '(7*a)dx1^dx2  +  (-1)dx2^dx3')
 
     def test_simplify(self):
         a, f, r = sp.symbols('a, f, r')
