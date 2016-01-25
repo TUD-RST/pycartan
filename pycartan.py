@@ -499,12 +499,16 @@ class DifferentialForm(CantSympify):
     # TODO: Refactoring
     # Differentialform ausgeben
 
-    def _idcs_to_str(self, idcs):
+    def _idcs_to_str(self, idcs, latex=None):
         """convert an index tuple like (0, 2, 3) into an string like "dx1^dx3^dx4"
         """
 
-        coord_strings = ["d"+ (self.basis[i]).name for i in idcs]
-        product_string = "^".join(coord_strings)
+        if not latex:
+            coord_strings = ["d"+ (self.basis[i]).name for i in idcs]
+            product_string = "^".join(coord_strings)
+        else:
+            coord_strings = [r"\d "+ (latex(self.basis[i])) for i in idcs]
+            product_string = r"\wedge".join(coord_strings)
         return product_string
 
 
@@ -516,6 +520,22 @@ class DifferentialForm(CantSympify):
         res_strings = []
         for idcs, coeff in nztuples:
             tmp_str = "(%s)%s" %(str(coeff), self._idcs_to_str(idcs) )
+            res_strings.append(tmp_str)
+
+        if len(res_strings) == 0:
+            res = "(0)%s" % self._idcs_to_str(self.indices[0])
+        else:
+            res = "  +  ".join(res_strings)
+        return res
+
+    def to_latex(self, latex_func=sp.latex):
+        if self.grad == 0:
+            return str(self.coeff[0])
+        nztuples = [(idcs, coeff) for idcs, coeff in zip(self.indices, self.coeff) if coeff != 0]
+
+        res_strings = []
+        for idcs, coeff in nztuples:
+            tmp_str = "%s %s" %(latex_func(coeff), self._idcs_to_str(idcs, latex=latex_func) )
             res_strings.append(tmp_str)
 
         if len(res_strings) == 0:
