@@ -379,7 +379,6 @@ class DifferentialForm(CantSympify):
         res.coeff = k_new
         return res
 
-    # TODO doctest
     def get_coeff(self, base_form):
         """
         if self == 7*dx - x**2*dy,

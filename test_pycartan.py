@@ -358,6 +358,16 @@ class ExteriorAlgebraTests(unittest.TestCase):
                   a2*dxddot1*dx2
         self.assertEqual(res, exp_res)
 
+    def test_get_coeff(self):
+        xx = st.symb_vector("x, y, z")
+        (x, y, z), (dx, dy, dz) = ct.setup_objects(xx)
+        w = 7*dx - x**2*dy
+        c1 = w.get_coeff(dx)
+        c2 = w.get_coeff(dy)
+
+        self.assertEqual(c1, 7)
+        self.assertEqual(c2, -x**2)
+
     def test_get_multiplied_baseform(self):
 
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
