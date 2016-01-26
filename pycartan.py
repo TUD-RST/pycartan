@@ -386,7 +386,20 @@ class DifferentialForm(CantSympify):
         example: w=(dx1^dxdot1) + (dx2^dxdddot1)
            w.ord -> 3
         """
+        base_length = self._calc_base_length()
+        nzt = self.nonzero_tuples(srn=True)
 
+        if len(nzt) == 0:
+            return 0
+
+        # get the highest scalar index (basis index) which occurs in any nonzero index tuple
+
+        nz_idx_array = np.array(zip(*nzt)[1])
+        highest_base_index = np.max(nz_idx_array)
+
+        res = int(highest_base_index/base_length)
+
+        return res
 
 
     def get_coeff(self, base_form):

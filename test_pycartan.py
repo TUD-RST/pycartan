@@ -358,6 +358,36 @@ class ExteriorAlgebraTests(unittest.TestCase):
                   a2*dxddot1*dx2
         self.assertEqual(res, exp_res)
 
+    def test_ord(self):
+        x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
+        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+
+        XX = st.concat_rows(xx, xxd, xxdd)
+        XX, dXX = ct.setup_objects(XX)
+
+
+        dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = dXX
+
+        w0 = 0*dx1
+        w1 = dx1 + dxdot3
+        w2 = 4*x2*dx1 - sp.sin(x3)*xdot1*dx2
+
+
+        self.assertEqual(w0.ord, 0)
+        self.assertEqual(dx1.ord, 0)
+        self.assertEqual(dxdot1.ord, 1)
+        self.assertEqual(dxddot3.ord, 2)
+        self.assertEqual(w1.ord, 1)
+        self.assertEqual(w2.ord, 0)
+        self.assertEqual(w2.d.ord, 1)
+
+        w3 = w1^w2
+
+        self.assertEqual(w3.ord, 1)
+        self.assertEqual(w3.dot().ord, 2)
+
+
     def test_get_coeff(self):
         xx = st.symb_vector("x, y, z")
         (x, y, z), (dx, dy, dz) = ct.setup_objects(xx)
