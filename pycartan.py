@@ -379,6 +379,16 @@ class DifferentialForm(CantSympify):
         res.coeff = k_new
         return res
 
+    @property
+    def ord(self):
+        """returns the highest differential order of the highest nonzero coefficient
+
+        example: w=(dx1^dxdot1) + (dx2^dxdddot1)
+           w.ord -> 3
+        """
+
+
+
     def get_coeff(self, base_form):
         """
         if self == 7*dx - x**2*dy,
@@ -719,20 +729,7 @@ class DifferentialForm(CantSympify):
                 c = 0
             self.setitem(idx_tup, c)
 
-    def dot(self, additional_symbols=None):
-        """
-        returns the time derivative of this n-form:
-
-        self = a*dx + 0*dy + 0*dxdot + 0*dydot
-        self.dot() == adot*dx + a*dxdot
-
-        currently only supported for 1- and 2-forms
-
-        additional_symbols is an optional list of time_dependent symbols
-        """
-
-        if not self.degree <= 2:
-            raise NotImplementedError(".dot only tested for degree <= 2, might work however")
+    def _calc_base_length(self):
 
         # Ensure that some structural assumptions for self.basis hold
         # i.e. basis = [x1, x2, x3, xdot1, xdot2, xdot3]
@@ -748,6 +745,25 @@ class DifferentialForm(CantSympify):
             msg += "Got:      %s\n" % diff_order_list
             msg += "Expected: %s\n" % expected_diff_order_list
             raise ValueError(msg)
+
+        return base_length
+
+    def dot(self, additional_symbols=None):
+        """
+        returns the time derivative of this n-form:
+
+        self = a*dx + 0*dy + 0*dxdot + 0*dydot
+        self.dot() == adot*dx + a*dxdot
+
+        currently only supported for 1- and 2-forms
+
+        additional_symbols is an optional list of time_dependent symbols
+        """
+
+        if not self.degree <= 2:
+            raise NotImplementedError(".dot only tested for degree <= 2, might work however")
+
+        base_length = self._calc_base_length()
 
         if additional_symbols is None:
             additional_symbols = []
