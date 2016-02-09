@@ -200,6 +200,19 @@ class DifferentialForm(CantSympify):
         new_form.coeff = self.coeff * f
         return new_form
 
+    def __div__(self, arg):
+
+        msg = "Unexpected arg for div: %s of type(%s)" % (str(arg), type(arg))
+        try:
+            arg = sp.sympify(arg)
+        except sp.SympifyError:
+            raise TypeError(msg)
+        if not isinstance(arg, sp.Basic):
+            raise TypeError(msg)
+
+        return (1/arg)*self
+
+
     def __xor__(self, f):
         """
         overload ^-operator with wedge product

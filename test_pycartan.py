@@ -60,12 +60,26 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         w1 = x2*dx1 + x5*dx3 - dx4
         w1 += dx2*sp.exp(x3)
+        
+        w2 = w1/x3
+        
+        w3 = w1*1/x1
 
         with self.assertRaises(sp.SympifyError) as cm:
             x1.diff(dx1)
 
         with self.assertRaises(TypeError) as cm:
             x1 + dx2
+            
+        with self.assertRaises(TypeError) as cm:
+            1/dx2
+            
+        with self.assertRaises(TypeError) as cm:
+            dx1/dx2
+
+        with self.assertRaises(Exception) as cm:
+            # raises NotImplemented but this might change in further versions of sympy
+            dx1/sp.eye(3)
 
     def test_calculation2(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
