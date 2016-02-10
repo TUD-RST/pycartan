@@ -639,13 +639,106 @@ class DifferentialForm(CantSympify):
         if not self.grad == 1:
             raise NotImplementedError("not yet supported")
 
-        assert self.d.is_zero()
+        if not self.d.is_zero():
+            msg = "This form seem not to be closed (self.d != 0 )"
+            raise ValueError(msg)
 
-        res = 0
-        for b, c in zip(self.basis, self.coeff):
-            res += sp.integrate(c, b)
+        # generator for integration "constants" (which might depend on other vars)
+        ic_gen = sp.numbered_symbols('IC_', sp.Function)
+        ic_list = []
+        res_list = []
+        complete_basis = list(self.basis)
 
-        return res
+        for i, (b, c) in enumerate(zip(self.basis, self.coeff)):
+            # ode = F(b).diff(b) - c
+            #
+            # sol = sp.dsolve(ode, F(b))
+            if c == 0:
+                continue
+
+            # integration constant might depend on all vars but b
+            reduced_basis = list(complete_basis)
+            reduced_basis.pop(i)
+            ic = ic_gen.next()(*reduced_basis)
+
+            # store the missing argument as new attribute
+            ic.missing_arg = b
+            ic_list.append(ic)
+            res = sp.integrate(c, b) + ic
+            res_list.append(res)
+
+        # now we have to determine the integration constants from a system of
+        # linear algebraic equations and some extra conditions
+
+        # to understand this algorithm use the example y = x1 + x2*sin(x3); self = dy
+        # There are N integration constants and N-1 differences which must vanish
+        # so there is one degree of freedom which must be used according to which symbols
+        # the integration constants depend on
+
+        N = len(res_list)
+        if N == 0:
+            return 0
+
+        sol_list = []
+
+        for i in xrange(N-1):
+
+            difference = (res_list[i+1] - res_list[i]).subs(sol_list)
+            ic1, ic2 = ic_list[i:i+2]
+
+            if i == 0 or ic1 not in zip(*sol_list)[0]:
+
+                rest = difference.subs(st.zip0(ic_list))
+
+                if rest == 0:
+                    # this means: difference == ic2 - ic1
+                    sol_list += [(ic1, ic2)]
+                    continue
+
+                arg1 = ic1.missing_arg
+                rest_d1 = rest.diff(arg1)
+
+                ic1_sol = rest - sp.integrate(rest_d1, arg1)
+
+                new_rest = difference.subs(ic1, ic1_sol).subs(ic2, 0)
+                arg2 = ic2.missing_arg
+                new_rest_d2 = new_rest.diff(arg2)
+
+                ic2_sol = -(new_rest - sp.integrate(new_rest_d2, arg2))
+
+                sol_list += [(ic1, ic1_sol), (ic2, ic2_sol)]
+            else:
+                new_rest = difference.subs(ic2, 0)
+
+                ic2_sol = -new_rest
+                sol_list += [(ic2, ic2_sol)]
+
+            if not difference.subs(sol_list) == 0:
+                msg = "Unexpected result while calculating integration constants"
+                #IPS()
+                raise ValueError(msg)
+
+            # eqn_list.append(res_list[i+1] - res_list[i])
+
+        # there might still be some integration constants undetermined
+        # (especially in the case N==1)
+        # to handle this, all remaining constants are set to zero:
+        sol_list += st.zip0(ic_list)
+
+        results = sp.Matrix(res_list).subs(sol_list)
+
+        # the results should be the all the same
+
+        for r in results[1:]:
+            assert r == results[0]
+
+        # final test: take the exterior derivative and compare to self
+        if not d(results[0], self.basis) == self:
+            msg = "Unexpected result while calculating integration constants"
+            # IPS()
+            raise ValueError(msg)
+
+        return results[0]
 
     # TODO: merge with the contract function
     def contract(self, vf):
