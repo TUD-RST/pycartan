@@ -551,6 +551,10 @@ class DifferentialForm(CantSympify):
         if self.grad == 0:
             return str(self.coeff[0])
         nztuples = [(idcs, coeff) for idcs, coeff in zip(self.indices, self.coeff) if coeff != 0]
+        
+        if self.grad > self.dim_basis:
+            coord_strings = ['d'+self.basis[0].name] * self.grad
+            return "(0)" + "^".join(coord_strings)
 
         res_strings = []
         for idcs, coeff in nztuples:

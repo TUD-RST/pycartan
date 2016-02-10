@@ -143,6 +143,19 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         s1 = str(7*a*dx1*dx2 - dx2*dx3)
         self.assertEqual(s1, '(7*a)dx1^dx2  +  (-1)dx2^dx3')
+        
+        w2 = -sin(x3)*dx1 + cos(x3)*dx2
+        w3 = dx3
+        s1 = str(w2.d^w3)
+        self.assertEqual(s1, '(0)dx1^dx2^dx3')
+        
+        s1 = str(w2.d^w2^w3)
+        self.assertEqual(s1, '(0)dx1^dx1^dx1^dx1')
+        
+        s1 = str(w2^w2^w2^ w2^w2^w2)
+        self.assertEqual(s1, '(0)dx1'+'^dx1'*5)
+        
+        
 
     def test_simplify(self):
         a, f, r = sp.symbols('a, f, r')
