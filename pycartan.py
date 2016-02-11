@@ -967,6 +967,24 @@ class DifferentialForm(CantSympify):
     def srn(self):
         return self.coeff.srn
 
+class VectorDifferentialForm(CantSympify):
+    def __init__(self, n, basis, coeff=None, name=None):
+        self.grad = n
+        self.basis = sp.Matrix(basis)
+        self.coeff = coeff
+        
+        self.m, self.n = coeff.shape
+        self._w = []
+        for i in xrange(0, self.m):
+            w1_coeffs = coeff.row(i)
+            wi = DifferentialForm(self. grad, self.basis, coeff=w1_coeffs)
+            self._w.append(wi)
+
+    def get_differential_form(self, i):
+        return self._w[i]
+
+    def get_coeff_from_idcs(self, idcs):
+        return self.coeff.row(idcs)
 
 def coeff_ido_derivorder(sigma, *factors, **kwargs):
     """

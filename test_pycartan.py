@@ -7,7 +7,7 @@ Created on Thu Oct 09 16:43:00 2014
 
 import unittest
 import sympy as sp
-from sympy import sin, cos, exp
+from sympy import sin, cos, exp, tan
 
 import symb_tools as st
 from pycartanlib import pycartan as ct
@@ -699,6 +699,47 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
+    def test_vector_k_form(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4')
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3]])
+        Q_ = st.col_stack(Q, sp.zeros(2, 6))
+
+        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
+
+        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w1_tilde = w.get_differential_form(0)
+        self.assertEquals(w1.coeff, w1_tilde.coeff)
+
+        w2_tilde = w.get_differential_form(1)
+        self.assertEquals(w2.coeff, w2_tilde.coeff)
+
+    def test_vdform_get_coeff_from_idcs(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4')
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3]])
+        Q_ = st.col_stack(Q, sp.zeros(2, 6))
+        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w_0 = w.get_coeff_from_idcs(0)
+        Q_0 = Q_.row(0)
+        self.assertEquals(w_0, Q_0)
+
+        w_1 = w.get_coeff_from_idcs(1)
+        Q_1 = Q_.row(1)
+        self.assertEquals(w_1, Q_1)
 
 def main():
     unittest.main()
