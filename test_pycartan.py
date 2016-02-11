@@ -264,6 +264,13 @@ class ExteriorAlgebraTests(unittest.TestCase):
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
+            # tests for some simplification problem
+            y1 = sp.log(x2) + sp.log(sin(x1) - 1)/2 + sp.log(sin(x1) + 1)/2
+            dx1, dx2, dx3, dx4, dx5 = self.dx
+            dy1 = (-sp.tan(x1))*dx1 + (1/x2)*dx2
+            y1b = dy1.integrate()
+            self.assertEqual(y1, y1b)
+
         y1 = sin(x1 + x2 + x3)
         dy1 = ct.d(y1, self. xx)
         w = x1*dy1
