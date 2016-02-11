@@ -13,6 +13,7 @@ from sympy.core.sympify import CantSympify
 import itertools as it
 
 import symb_tools as st  # needed for make global, perform_time_derivative, srn
+import non_commutative_tools as nct
 
 from IPython import embed as IPS
 
@@ -969,22 +970,95 @@ class DifferentialForm(CantSympify):
 
 class VectorDifferentialForm(CantSympify):
     def __init__(self, n, basis, coeff=None, name=None):
-        self.grad = n
+        self.degree = n
         self.basis = sp.Matrix(basis)
-        self.coeff = coeff
-        
-        self.m, self.n = coeff.shape
+
+        if not coeff==None:
+            self.coeff = coeff
+            self.m, self.n = coeff.shape
+        else:
+            self.m = self.n = 0
+            self.coeff = sp.Matrix([])
+
         self._w = []
         for i in xrange(0, self.m):
             w1_coeffs = coeff.row(i)
-            wi = DifferentialForm(self. grad, self.basis, coeff=w1_coeffs)
+            wi = DifferentialForm(self.degree, self.basis, coeff=w1_coeffs)
             self._w.append(wi)
+
+    def left_mul_by(self, matrix, s=None, additional_symbols=None):
+        """ Performs matrix*vectorform and returns the new vectorform.
+            additional_symbols is an optional list of time_dependent symbols
+            Note: matrix is assumed to be polynomial in s
+        """
+        assert isinstance(matrix, sp.MatrixBase)
+
+        m1, n1 = matrix.shape
+        assert m1==self.m, "Matrix Dimesion does not fit vector form!"
+
+        # right shift s:
+        matrix_shifted = nct.right_shift_all(matrix, s=s, func_symbols=additional_symbols)
+
+        # if s is of higher order, raise not implemented
+        if not s==None and matrix_shifted.diff(s).has(s):
+            raise NotImplementedError
+
+        if s==None:
+            M0 = matrix_shifted
+        else:
+            M1 = matrix_shifted.diff(s)
+            M0 = matrix_shifted - M1*s
+
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+        for i in xrange(0, m1):
+            new_wi = DifferentialForm(1, self.basis)
+            for j in xrange(0, n1):
+                new_wi += M0[i,j] * self.get_differential_form(j)
+                if not s==None:
+                    new_wi += M1[i,j] * self.get_differential_form(j).dot(additional_symbols)
+            new_vector_form.append(new_wi)
+
+        return new_vector_form
+
+    def unpack(self):
+        ww = []
+        for i in xrange(0, self.m):
+            ww.append(self._w[i])
+        return tuple(ww)
 
     def get_differential_form(self, i):
         return self._w[i]
 
     def get_coeff_from_idcs(self, idcs):
-        return self.coeff.row(idcs)
+        return self.coeff.col(idcs)
+
+    def append(self, k_form):
+        assert isinstance(k_form, DifferentialForm)
+        assert k_form.degree==self.degree, "Degrees of vector forms do not match."
+
+        row = k_form.coeff.T
+        self._w.append(k_form)
+        self.coeff = st.row_stack(self.coeff, row)
+        self.m = self.m + 1
+
+def stack_to_vector_form(*arg):
+    """
+    This function stacks k-forms to a vector k-form.
+    """
+    # TODO: asserts
+
+    if len(arg)==1:
+        return arg[0]
+    else:
+        XX = arg[0].basis
+        k = arg[0].degree
+
+        coeff_matrix = sp.Matrix([])
+        for i in xrange(0, len(arg)):
+            coeff_matrix_i = arg[i].coeff.T
+            coeff_matrix = st.row_stack(coeff_matrix, coeff_matrix_i)
+
+        return VectorDifferentialForm(k, XX, coeff=coeff_matrix)
 
 def coeff_ido_derivorder(sigma, *factors, **kwargs):
     """
