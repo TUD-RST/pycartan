@@ -737,9 +737,9 @@ class DifferentialForm(CantSympify):
             assert r == results[0]
 
         # final test: take the exterior derivative and compare to self
-        result_d = d(results[0], self.basis)
-        result_d.simplify()
-        if not result_d == self:
+        result_d_coeff = sp.simplify( d(results[0], self.basis).coeff )
+        self_coeff = sp.simplify(self.coeff)
+        if not result_d_coeff == self_coeff:
             msg = "Unexpected result while calculating integration constants"
             #IPS()
             raise ValueError(msg)
