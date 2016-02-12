@@ -1004,9 +1004,18 @@ class VectorDifferentialForm(CantSympify):
 
         return new_vector_form
 
+    def __sub__(self, m):
+        neg_m = VectorDifferentialForm(m.degree, m.basis, -1*m.coeff)
+        return self + neg_m
+
     @property
     def srn(self):
         return self.coeff.srn
+
+    def simplify(self, *args, **kwargs):
+        self.coeff.simplify(*args, **kwargs)
+        for i in xrange(0, self.m):
+            self._w[i].coeff.simplify(*args, **kwargs)
 
     def left_mul_by(self, matrix, s=None, additional_symbols=None):
         """ Performs matrix*vectorform and returns the new vectorform.

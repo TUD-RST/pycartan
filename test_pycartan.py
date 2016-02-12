@@ -1013,6 +1013,35 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(omega_c.coeff, omega_comp.coeff)
 
+    def test_difference_vector_forms(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        A = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [1, 0, x3]])
+        A_ = st.col_stack(A, sp.zeros(2, 6))
+
+        B = sp.Matrix([
+            [x3/cos(x1), 0, 1],
+            [-tan(x1), 0, x3]])
+        B_ = st.col_stack(B, sp.zeros(2, 6))
+
+        # vector 1-forms
+        omega_a = ct.VectorDifferentialForm(1, XX, coeff=A_)
+        omega_b = ct.VectorDifferentialForm(1, XX, coeff=B_)
+        
+        omega_c = omega_a - omega_b
+        
+        # vector form to compare with
+        Q_ = A_ - B_
+        omega_comp = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+
+        self.assertEqual(omega_c.coeff, omega_comp.coeff)
+
     def test_vector_form_dot(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
@@ -1037,8 +1066,6 @@ class ExteriorAlgebraTests(unittest.TestCase):
         Qdot_ = st.row_stack(omega_1dot.coeff.T, omega_2dot.coeff.T)
         # vector form to compare with
         omegadot_comp = ct.VectorDifferentialForm(1, XX, coeff=Qdot_)
-
-        IPS()
 
         self.assertEqual(omega_dot.coeff, omegadot_comp.coeff)
 
