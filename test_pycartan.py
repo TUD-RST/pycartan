@@ -10,7 +10,7 @@ import sympy as sp
 from sympy import sin, cos, exp, tan
 
 import symb_tools as st
-from pycartanlib import pycartan as ct
+import pycartan as ct
 import non_commutative_tools as nct
 
 from IPython import embed as IPS
@@ -700,6 +700,9 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
+
+
+
     def test_vector_k_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4')
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
@@ -807,6 +810,44 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(w.coeff, b.coeff)
 
+    def test_vector_form_append_2(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+        
+        s  = sp.Symbol('s', commutative=False)
+        C  = sp.Symbol('C', commutative=False)
+
+        # vector 1-form
+        Q1 = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3]])
+
+        Q1_ = st.col_stack(Q1, sp.zeros(2, 6))
+        w1 = ct.VectorDifferentialForm(1, XX, coeff=Q1_)
+
+        # 1-forms
+        Q2 = sp.Matrix([
+            [x1, x2, x3],
+            [x3, x1, x2]])
+
+        Q2_ = st.col_stack(Q2, sp.zeros(2, 6))
+        w2 = ct.VectorDifferentialForm(1, XX, coeff=Q2_)
+
+        w1.append(w2)
+
+        # vector form to compare with:
+        B = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3],
+            [x1, x2, x3],
+            [x3, x1, x2]])
+        B_ = st.col_stack(B, sp.zeros(4, 6))
+
+        self.assertEqual(w1.coeff, B_)
+
     def test_stack_to_vector_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
@@ -829,7 +870,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEquals(w.coeff, w_stacked.coeff)
 
-    def test_right_mul_1(self):
+    def test_left_mul_by_1(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
         xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
@@ -861,7 +902,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         
         self.assertEquals(t2.coeff, t.coeff.row(1).T)
 
-    def test_right_mul_2(self):
+    def test_left_mul_by_2(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
         xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
@@ -893,7 +934,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         
         self.assertEquals(t2.coeff, t.coeff.row(1).T)
 
-    def test_right_mul_3(self):
+    def test_left_mul_by_3(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
         xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
@@ -918,6 +959,108 @@ class ExteriorAlgebraTests(unittest.TestCase):
         with self.assertRaises(Exception) as cm:
             # raises NotImplemented but this might change
             t = w.left_mul_by(M3, s, additional_symbols=[C])
+
+    def test_vector_form_subs(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        C  = sp.Symbol('C', commutative=False)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [C, 0, x3]])
+        Q_ = st.col_stack(Q, sp.zeros(2, 6))
+
+        B = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3]])
+        B_ = st.col_stack(B, sp.zeros(2, 6))
+
+        # vector 1-forms
+        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_).subs(C, -tan(x1))
+
+        self.assertEqual(B_, omega.coeff)
+
+    def test_sum_two_vector_forms(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        A = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [1, 0, x3]])
+        A_ = st.col_stack(A, sp.zeros(2, 6))
+
+        B = sp.Matrix([
+            [x3/cos(x1), 0, 1],
+            [-tan(x1), 0, x3]])
+        B_ = st.col_stack(B, sp.zeros(2, 6))
+
+        # vector 1-forms
+        omega_a = ct.VectorDifferentialForm(1, XX, coeff=A_)
+        omega_b = ct.VectorDifferentialForm(1, XX, coeff=B_)
+        
+        omega_c = omega_a + omega_b
+        
+        # vector form to compare with
+        Q_ = A_ + B_
+        omega_comp = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+
+        self.assertEqual(omega_c.coeff, omega_comp.coeff)
+
+    def test_vector_form_dot(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [1, 0, x3]])
+        Q_ = st.col_stack(Q, sp.zeros(2, 6))
+
+        # vector 1-forms
+        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        omega_dot = omega.dot()
+
+        
+        omega_1, omega_2 = omega.unpack()
+        
+        omega_1dot = omega_1.dot()
+        omega_2dot = omega_2.dot()
+        Qdot_ = st.row_stack(omega_1dot.coeff.T, omega_2dot.coeff.T)
+        # vector form to compare with
+        omegadot_comp = ct.VectorDifferentialForm(1, XX, coeff=Qdot_)
+
+        IPS()
+
+        self.assertEqual(omega_dot.coeff, omegadot_comp.coeff)
+
+    def test_vector_form_dot(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+
+        XX = st.row_stack(xx, xxdot, xxddot)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [1, 0, x3]])
+        Q_ = st.col_stack(Q, sp.zeros(2, 6))
+
+        # vector 1-forms
+        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+
+        with self.assertRaises(ValueError) as cm:
+            # coordinates are not part of basis
+            omega.dot().dot().dot()
+
 
 
 def main():

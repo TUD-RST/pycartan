@@ -969,9 +969,10 @@ class DifferentialForm(CantSympify):
         return self.coeff.srn
 
 class VectorDifferentialForm(CantSympify):
-    def __init__(self, n, basis, coeff=None, name=None):
+    def __init__(self, n, basis, coeff=None, basis_forms_str=None):
         self.degree = n
         self.basis = sp.Matrix(basis)
+        self.basis_forms_str = basis_forms_str
 
         if not coeff==None:
             self.coeff = coeff
@@ -985,6 +986,27 @@ class VectorDifferentialForm(CantSympify):
             w1_coeffs = coeff.row(i)
             wi = DifferentialForm(self.degree, self.basis, coeff=w1_coeffs)
             self._w.append(wi)
+
+    def __repr__(self):
+        if self.basis_forms_str==None:
+            basis_forms = "\"dX\""
+        else:
+            basis_forms = self.basis_forms_str
+        return sp.sstr(self.coeff) + basis_forms
+
+    def __add__(self, a):
+        assert isinstance(a, VectorDifferentialForm)
+        assert self.degree == a.degree
+        assert self.basis == a.basis
+
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+        new_vector_form.coeff = self.coeff + a.coeff
+
+        return new_vector_form
+
+    @property
+    def srn(self):
+        return self.coeff.srn
 
     def left_mul_by(self, matrix, s=None, additional_symbols=None):
         """ Performs matrix*vectorform and returns the new vectorform.
@@ -1020,6 +1042,13 @@ class VectorDifferentialForm(CantSympify):
 
         return new_vector_form
 
+    def dot(self):
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+        for i in xrange(0, self.m):
+            new_wi = self.get_differential_form(i).dot()
+            new_vector_form.append(new_wi)
+        return new_vector_form
+
     def unpack(self):
         ww = []
         for i in xrange(0, self.m):
@@ -1033,13 +1062,20 @@ class VectorDifferentialForm(CantSympify):
         return self.coeff.col(idcs)
 
     def append(self, k_form):
-        assert isinstance(k_form, DifferentialForm)
         assert k_form.degree==self.degree, "Degrees of vector forms do not match."
 
-        row = k_form.coeff.T
+        if isinstance(k_form, DifferentialForm):
+            rows = k_form.coeff.T
+        else:
+            rows = k_form.coeff
         self._w.append(k_form)
-        self.coeff = st.row_stack(self.coeff, row)
+        self.coeff = st.row_stack(self.coeff, rows)
         self.m = self.m + 1
+
+    def subs(self, *args, **kwargs):
+        matrix = self.coeff.subs(*args, **kwargs)
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis, coeff=matrix)
+        return new_vector_form
 
 def stack_to_vector_form(*arg):
     """
