@@ -1007,6 +1007,10 @@ class VectorDifferentialForm(CantSympify):
     def __sub__(self, m):
         neg_m = VectorDifferentialForm(m.degree, m.basis, -1*m.coeff)
         return self + neg_m
+        
+    # TODO: Unit test
+    def __getitem__(self, ind):
+        return self._w.__getitem__(ind)
 
     @property
     def srn(self):
