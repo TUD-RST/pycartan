@@ -229,45 +229,47 @@ class ExteriorAlgebraTests(unittest.TestCase):
     def test_integrate(self):
         x1, x2, x3, x4, x5 = self.xx
 
-        if 1:
+        a, b = sp.symbols('a, b', nonzero=True)
+
+        if 0:
             y1 = x1 + sin(x3)*x2
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             self.assertTrue(dy1.d.is_zero())
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = 0
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1+x2
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1 + sin(x3)*x2**2*sp.exp(x1) + sin(x2)*x3
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x2*cos(x1) + x5*cos(x4)
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = sin(x1)*cos(x2) + x5*cos(x4)
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = sin(x1 + x2 + x3)
-            dy1 = pc.d(y1, self. xx)
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
@@ -285,12 +287,18 @@ class ExteriorAlgebraTests(unittest.TestCase):
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
-        y1 = sin(x1 + x2 + x3)
-        dy1 = pc.d(y1, self. xx)
-        w = x1*dy1
-        self.assertFalse(w.d.is_zero())
-        with self.assertRaises(ValueError) as cm:
-            w.integrate()
+
+            y1 = sin(x1 + x2 + x3)
+            dy1 = pc.d(y1, self.xx)
+            w = x1*dy1
+            self.assertFalse(w.d.is_zero())
+            with self.assertRaises(ValueError) as cm:
+                w.integrate()
+
+        y1 = a*sp.log(cos(b*x1)**2)
+        dy1 = pc.d(y1, self.xx)
+        y1b = dy1.integrate()
+        self.assertEqual(y1, y1b)
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))

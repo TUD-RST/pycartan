@@ -637,7 +637,7 @@ class DifferentialForm(CantSympify):
                 coeff = coeff.subs(deri_n, dfunc).doit()
         return str(coeff)
 
-    # TODO: unit test, extend to higher degrees
+    # TODO: extend to higher degrees (maybe)
     def integrate(self):
         """
         assumes self to be a 1-Form
@@ -673,7 +673,7 @@ class DifferentialForm(CantSympify):
             # store the missing argument as new attribute
             ic.missing_arg = b
             ic_list.append(ic)
-            res = sp.integrate(c, b) + ic
+            res = st.sca_integrate(c, b) + ic
             res_list.append(res)
 
         # now we have to determine the integration constants from a system of
@@ -707,13 +707,13 @@ class DifferentialForm(CantSympify):
                 arg1 = ic1.missing_arg
                 rest_d1 = rest.diff(arg1)
 
-                ic1_sol = rest - sp.integrate(rest_d1, arg1)
+                ic1_sol = rest - st.sca_integrate(rest_d1, arg1)
 
                 new_rest = difference.subs(ic1, ic1_sol).subs(ic2, 0)
                 arg2 = ic2.missing_arg
                 new_rest_d2 = new_rest.diff(arg2)
 
-                ic2_sol = -(new_rest - sp.integrate(new_rest_d2, arg2))
+                ic2_sol = -(new_rest - st.sca_integrate(new_rest_d2, arg2))
 
                 sol_list += [(ic1, ic1_sol), (ic2, ic2_sol)]
             else:
@@ -724,7 +724,6 @@ class DifferentialForm(CantSympify):
 
             if not difference.subs(sol_list) == 0:
                 msg = "Unexpected result while calculating integration constants"
-                #IPS()
                 raise ValueError(msg)
 
             # eqn_list.append(res_list[i+1] - res_list[i])
@@ -746,7 +745,7 @@ class DifferentialForm(CantSympify):
         self_coeff = sp.simplify(self.coeff)
         if not result_d_coeff == self_coeff:
             msg = "Unexpected result while calculating integration constants"
-            #IPS()
+            IPS()
             raise ValueError(msg)
 
         return results[0]
