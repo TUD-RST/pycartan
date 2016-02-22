@@ -12,7 +12,7 @@ import sympy as sp
 from sympy.core.sympify import CantSympify
 import itertools as it
 
-import symb_tools as st  # needed for make global, perform_time_derivative, srn
+import symb_tools as st  # needed for make_global, time_deriv, srn
 import non_commutative_tools as nct
 
 from IPython import embed as IPS
@@ -835,7 +835,7 @@ class DifferentialForm(CantSympify):
         # old_highest_derivs
         ohd = old_basis[-L:, :]
 
-        new_highest_derivs = st.perform_time_derivative(ohd, old_basis, order=1)
+        new_highest_derivs = st.time_deriv(ohd, old_basis, order=1)
 
         new_basis = st.row_stack(old_basis, new_highest_derivs)
 
@@ -918,7 +918,7 @@ class DifferentialForm(CantSympify):
         # get corresponding coords
 
         nz_coords = [self.basis[i] for i in flat_nonzero_idcs]
-        nz_coords_diff = [st.perform_time_derivative(c, self.basis) for c in nz_coords]
+        nz_coords_diff = [st.time_deriv(c, self.basis) for c in nz_coords]
 
         # difference set
         ds = set(nz_coords_diff).difference(self.basis)
@@ -936,7 +936,7 @@ class DifferentialForm(CantSympify):
 
         # replace the original coeff with its time derivative (adot*dx1^dx3)
         for idcs, c in zip(idx_tups, coeffs):
-            res[idcs] = st.perform_time_derivative(c, basis_list + additional_symbols)
+            res[idcs] = st.time_deriv(c, basis_list + additional_symbols)
 
         # now for every coordinate find the basis-index of its derivative, e.g.
         # if basis is x1, x2, x3 the index of xdot2 is 4
@@ -1261,7 +1261,7 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
     default_do_symbol = sp.Symbol('l')
     do_symbol = kwargs.get('do_symbol', default_do_symbol)
     S_vector = sp.Matrix(S_list)
-    S_dot_vector = st.perform_time_derivative(S_vector, S_vector)
+    S_dot_vector = st.time_deriv(S_vector, S_vector)
 
     c_res1 = c_res0.subs(zip(S_dot_vector, do_symbol*S_dot_vector))
 
@@ -1269,7 +1269,7 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
     # constructing the whole replacement structure
     S_repl_matrix = sp.Matrix(replacements_S)  # two columns: symbols, expressions
     tds2 = tds + S_list + list(basis)
-    S_repl_matrix_dot = st.perform_time_derivative(S_repl_matrix, tds2)
+    S_repl_matrix_dot = st.time_deriv(S_repl_matrix, tds2)
 
     all_replmts = S_repl_matrix_dot.tolist() + replacements_S
 

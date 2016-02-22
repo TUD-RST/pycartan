@@ -308,7 +308,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertFalse( any(dx1.coeff[1:]) )
 
         # derivative coordinates
-        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
         ext_basis = ct.st.row_stack(xx, xxd)
 
         w1 = xdot1 * dx2
@@ -341,8 +341,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
         dx1, dx2, dx3 = ddx
 
         dx1.jet_extend_basis()
-        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxdd = ct.st.time_deriv(xx, xx, order=2)
 
         full_basis = st.row_stack(xx, xxd, xxdd)
 
@@ -361,7 +361,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
+        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
         xx_tmp, ddx = ct.setup_objects(xx)
         dx1, dx2, dx3 = ddx
 
@@ -380,11 +380,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot2(self):
         a1, a2, a3 = aa = sp.Matrix(sp.symbols("a1:4"))
-        adot1, adot2, adot3 = aad = ct.st.perform_time_derivative(aa, aa)
+        adot1, adot2, adot3 = aad = ct.st.time_deriv(aa, aa)
 
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.perform_time_derivative(xx, xx)
-        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xxd = ct.st.time_deriv(xx, xx)
+        xxdd = ct.st.time_deriv(xx, xx, order=2)
 
         full_basis = ct.st.row_stack(xx, xxd, xxdd)
         xx_tmp, ddx = ct.setup_objects(full_basis)
@@ -406,8 +406,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot3(self):
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.perform_time_derivative(xx, xx)
-        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xxd = ct.st.time_deriv(xx, xx)
+        xxdd = ct.st.time_deriv(xx, xx, order=2)
 
 
         full_basis = ct.st.row_stack(xx, xxd, xxdd)
@@ -425,15 +425,15 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot_2form(self):
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.perform_time_derivative(xx, xx)
-        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xxd = ct.st.time_deriv(xx, xx)
+        xxdd = ct.st.time_deriv(xx, xx, order=2)
 
         XX = ct.st.row_stack(xx, xxd, xxdd)
         foo, ddx = ct.setup_objects(XX)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
         a1, a2 = aa = sp.Matrix(sp.symbols("a1:3"))
-        adot1, adot2 = aadot = st.perform_time_derivative(aa, aa)
+        adot1, adot2 = aadot = st.time_deriv(aa, aa)
         b1, b2 = bb = sp.Matrix(sp.symbols("b1:3"))
 
         z = dx1^dx2
@@ -461,8 +461,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_ord(self):
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xdot1, xdot2, xdot3 = xxd = ct.st.perform_time_derivative(xx, xx)
-        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
+        xxdd = ct.st.time_deriv(xx, xx, order=2)
 
         XX = st.concat_rows(xx, xxd, xxdd)
         XX, dXX = ct.setup_objects(XX)
@@ -605,8 +605,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_coeff_ido_do(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.perform_time_derivative(xx, xx)
-        xxdd = ct.st.perform_time_derivative(xx, xx, order=2)
+        xxd = ct.st.time_deriv(xx, xx)
+        xxdd = ct.st.time_deriv(xx, xx, order=2)
 
 
         full_basis = ct.st.row_stack(xx, xxd, xxdd)
@@ -615,7 +615,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         aa = sp.Matrix(sp.symbols("a1:10"))
         a1, a2, a3, a4, a5, a6, a7, a8, a9 = aa
-        aad = ct.st.perform_time_derivative(aa, aa)
+        aad = ct.st.time_deriv(aa, aa)
         #adot1, adot2, adot3 =\
 
         mu1 = a1*dxdot1 + 3*a2*dx2
@@ -668,7 +668,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_coeff_ido_do2(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.perform_time_derivative(xx, xx)
+        xxd = ct.st.time_deriv(xx, xx)
 
         full_basis = ct.st.row_stack(xx, xxd)
         foo, ddx = ct.setup_objects(full_basis)
@@ -708,12 +708,14 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
 
-
+class TestVectorDifferentialForms(unittest.TestCase):
+    def setUp(self):
+        pass
 
     def test_vector_k_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4')
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -734,8 +736,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_get_coeff_from_idcs(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4')
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -754,8 +756,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_unpack_vector_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
         
@@ -781,8 +783,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_append(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
         
@@ -819,8 +821,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_append_2(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
         
@@ -857,8 +859,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_stack_to_vector_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -879,8 +881,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_left_mul_by_1(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
         
@@ -911,8 +913,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_left_mul_by_2(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -943,8 +945,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_left_mul_by_3(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -969,8 +971,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_subs(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -993,8 +995,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_sum_two_vector_forms(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -1022,8 +1024,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_difference_vector_forms(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -1051,8 +1053,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_dot(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
@@ -1078,8 +1080,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_vector_form_dot(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
-        xdot1, xdot2, xdot3 = xxdot = st.perform_time_derivative(xx, xx)
-        xddot1, xddot2, xddot3 = xxddot = st.perform_time_derivative(xxdot, xxdot)
+        xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
