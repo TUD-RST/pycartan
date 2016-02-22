@@ -10,7 +10,7 @@ import sympy as sp
 from sympy import sin, cos, exp, tan
 
 import symb_tools as st
-import pycartan as ct
+import pycartan as pc
 import non_commutative_tools as nct
 
 from IPython import embed as IPS
@@ -18,7 +18,7 @@ from IPython import embed as IPS
 class ExteriorAlgebraTests(unittest.TestCase):
 
     def setUp(self):
-        self.xx, self.dx = ct.setup_objects("x1, x2, x3, x4, x5")
+        self.xx, self.dx = pc.setup_objects("x1, x2, x3, x4, x5")
 
     def test_basics(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
@@ -32,7 +32,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEquals(dx1^dx2, dx1.wp(dx2))
         self.assertEquals(dx5^dx2, - dx2^dx5)
         self.assertEquals((dx5^dx2^dx1).degree, 3)
-        zero4_form = ct.DifferentialForm(4, self.xx)
+        zero4_form = pc.DifferentialForm(4, self.xx)
         self.assertEquals((dx5^dx2^dx1^dx5), zero4_form)
         self.assertFalse( any((dx4^dx4).coeff) )
 
@@ -49,7 +49,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         # commutativity with scalar functions
         self.assertEquals(dx5*x2*x3*10*dx2*dx1*x1, x2*x3*10*x1*dx5^dx2^dx1)
 
-        zero4_form = ct.DifferentialForm(4, self.xx)
+        zero4_form = pc.DifferentialForm(4, self.xx)
         self.assertEquals((dx5*dx2*dx1*dx5), zero4_form)
         self.assertFalse( any((dx4*dx4).coeff) )
 
@@ -87,12 +87,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
     def test_calculation_a(self):
         xx = st.symb_vector('x1:6')
         
-        dx1 = ct.DifferentialForm(1, xx, coeff=[1,0,0,0,0])
+        dx1 = pc.DifferentialForm(1, xx, coeff=[1,0,0,0,0])
 
     def test_calculation2(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
         x1, x2, x3, x4, x5 = self.xx
-        pc = ct
         k, u = sp.symbols('k, u')
 
         w3 = dx3 - u*dx5
@@ -111,19 +110,19 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         w1 = dx1*x1**2 + dx3*x2
         dw1 = w1.d
-        self.assertIsInstance(dw1, ct.DifferentialForm)
+        self.assertIsInstance(dw1, pc.DifferentialForm)
         self.assertEquals(dw1.degree, 2)
         self.assertEquals(dw1, dx2^dx3)
 
     def test_rank(self):
         a, l, r = sp.symbols('a, l, r')
-        (x1, x2, r), (dx1, dx2, dr) = ct.diffgeo_setup(3)
+        (x1, x2, r), (dx1, dx2, dr) = pc.diffgeo_setup(3)
         aa = a*dr-r*dx1-l*dx2
         self.assertEqual(aa.rank(), 1)
 
     def test_subs(self):
         a, f, r = sp.symbols('a, f, r')
-        (x1, x2, r), (dx1, dx2, dr) = ct.diffgeo_setup(3)
+        (x1, x2, r), (dx1, dx2, dr) = pc.diffgeo_setup(3)
         #aa = a*dr-r*dx1-l*dx2
 
         w1 = dx1.subs(a, r)
@@ -141,7 +140,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_string_representation(self):
         a, f, r = sp.symbols('a, f, r')
-        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
+        (x1, x2, x3), (dx1, dx2, dx3) = pc.diffgeo_setup(3)
 
         s1 = str(dx1)
         self.assertEqual(s1, '(1)dx1')
@@ -167,7 +166,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_simplify(self):
         a, f, r = sp.symbols('a, f, r')
-        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
+        (x1, x2, x3), (dx1, dx2, dx3) = pc.diffgeo_setup(3)
 
         w = cos(x3)**2*dx1 + sin(x3)**2*dx1
         w.simplify()
@@ -176,7 +175,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_expand(self):
         a, f, r = sp.symbols('a, f, r')
-        (x1, x2, x3), (dx1, dx2, dx3) = ct.diffgeo_setup(3)
+        (x1, x2, x3), (dx1, dx2, dx3) = pc.diffgeo_setup(3)
 
         c = a*(1/a - a) + a**2
         w = c*dx1
@@ -194,7 +193,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         xx = x1, x2 = sp.symbols("x1:3")
 
         F = y1**2 + y2**2 + y3**2
-        omega = ct.d(F, yy)  # omega = dF
+        omega = pc.d(F, yy)  # omega = dF
 
         # spherical coordinates:
         phi = sp.Matrix([cos(x1)*cos(x2),
@@ -202,13 +201,13 @@ class ExteriorAlgebraTests(unittest.TestCase):
                          sin(x2)])
 
         # calculate the pull back transformation of omega along phi_*
-        p = ct.pull_back(phi, xx, omega)
+        p = pc.pull_back(phi, xx, omega)
 
         self.assertTrue(p.is_zero())
 
     def test_lib_namespace(self):
         # this test was motivated by a bug (diff from sp in ct namespace)
-        self.assertFalse('diff' in dir(ct))
+        self.assertFalse('diff' in dir(pc))
 
     def test_gradient(self):
         x1, x2, x3, x4, x5 = self.xx
@@ -216,8 +215,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
         h1 = x1
         h2 = x3*x1*sin(x4)*exp(x5)+x2
 
-        dh1 = ct.d(h1, self.xx)
-        dh2 = ct.d(h2, self.xx)
+        dh1 = pc.d(h1, self.xx)
+        dh2 = pc.d(h2, self.xx)
 
         self.assertEqual(dh1.coeff[0], 1)
 
@@ -232,43 +231,43 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         if 1:
             y1 = x1 + sin(x3)*x2
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             self.assertTrue(dy1.d.is_zero())
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = 0
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1+x2
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x1 + sin(x3)*x2**2*sp.exp(x1) + sin(x2)*x3
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = x2*cos(x1) + x5*cos(x4)
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = sin(x1)*cos(x2) + x5*cos(x4)
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
             y1 = sin(x1 + x2 + x3)
-            dy1 = ct.d(y1, self. xx)
+            dy1 = pc.d(y1, self. xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
@@ -287,7 +286,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
             self.assertEqual(y1, y1b)
 
         y1 = sin(x1 + x2 + x3)
-        dy1 = ct.d(y1, self. xx)
+        dy1 = pc.d(y1, self. xx)
         w = x1*dy1
         self.assertFalse(w.d.is_zero())
         with self.assertRaises(ValueError) as cm:
@@ -295,7 +294,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xx_tmp, ddx = ct.setup_objects(xx)
+        xx_tmp, ddx = pc.setup_objects(xx)
 
         self.assertTrue(xx is xx_tmp)
 
@@ -308,15 +307,15 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertFalse( any(dx1.coeff[1:]) )
 
         # derivative coordinates
-        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
-        ext_basis = ct.st.row_stack(xx, xxd)
+        xdot1, xdot2, xdot3 = xxd = pc.st.time_deriv(xx, xx)
+        ext_basis = pc.st.row_stack(xx, xxd)
 
         w1 = xdot1 * dx2
         w1.jet_extend_basis()
         self.assertEqual(w1.basis[3], w1.coeff[1])
 
         dw1 = w1.d
-        res1 = ct.d(xdot1, ext_basis)^ct.d(x2, ext_basis)
+        res1 = pc.d(xdot1, ext_basis)^pc.d(x2, ext_basis)
         self.assertEqual(dw1, res1)
 
         w2 = x3*dx2
@@ -333,7 +332,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xx_tmp, ddx = ct.setup_objects(xx)
+        xx_tmp, ddx = pc.setup_objects(xx)
 
         self.assertTrue(xx is xx_tmp)
 
@@ -341,19 +340,19 @@ class ExteriorAlgebraTests(unittest.TestCase):
         dx1, dx2, dx3 = ddx
 
         dx1.jet_extend_basis()
-        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
-        xddot1, xddot2, xddot3 = xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xdot1, xdot2, xdot3 = xxd = pc.st.time_deriv(xx, xx)
+        xddot1, xddot2, xddot3 = xxdd = pc.st.time_deriv(xx, xx, order=2)
 
         full_basis = st.row_stack(xx, xxd, xxdd)
 
-        foo, ddX = ct.setup_objects(full_basis)
+        foo, ddX = pc.setup_objects(full_basis)
 
         dx1.jet_extend_basis()
         self.assertEqual(ddX[0].basis, dx1.basis)
         self.assertEqual(ddX[0].coeff, dx1.coeff)
 
         half_basis = st.row_stack(xx, xxd)
-        foo, ddY = ct.setup_objects(half_basis)
+        foo, ddY = pc.setup_objects(half_basis)
 
         dx2.jet_extend_basis()
         self.assertEqual(ddY[1].basis, dx2.basis)
@@ -361,12 +360,12 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
-        xx_tmp, ddx = ct.setup_objects(xx)
+        xdot1, xdot2, xdot3 = xxd = pc.st.time_deriv(xx, xx)
+        xx_tmp, ddx = pc.setup_objects(xx)
         dx1, dx2, dx3 = ddx
 
         full_basis = list(xx) + list(xxd)
-        dxdot2 = ct.DifferentialForm(1, full_basis, [0,0,0, 0,1,0])
+        dxdot2 = pc.DifferentialForm(1, full_basis, [0,0,0, 0,1,0])
 
         w1 = x3*dx2
         with self.assertRaises(ValueError) as cm:
@@ -380,14 +379,14 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot2(self):
         a1, a2, a3 = aa = sp.Matrix(sp.symbols("a1:4"))
-        adot1, adot2, adot3 = aad = ct.st.time_deriv(aa, aa)
+        adot1, adot2, adot3 = aad = pc.st.time_deriv(aa, aa)
 
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.time_deriv(xx, xx)
-        xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xxd = pc.st.time_deriv(xx, xx)
+        xxdd = pc.st.time_deriv(xx, xx, order=2)
 
-        full_basis = ct.st.row_stack(xx, xxd, xxdd)
-        xx_tmp, ddx = ct.setup_objects(full_basis)
+        full_basis = pc.st.row_stack(xx, xxd, xxdd)
+        xx_tmp, ddx = pc.setup_objects(full_basis)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
 
@@ -406,12 +405,12 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot3(self):
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.time_deriv(xx, xx)
-        xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xxd = pc.st.time_deriv(xx, xx)
+        xxdd = pc.st.time_deriv(xx, xx, order=2)
 
 
-        full_basis = ct.st.row_stack(xx, xxd, xxdd)
-        foo, ddx = ct.setup_objects(full_basis)
+        full_basis = pc.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = pc.setup_objects(full_basis)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
         aa = sp.Matrix(sp.symbols("a1:3"))
@@ -425,11 +424,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_dot_2form(self):
         xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.time_deriv(xx, xx)
-        xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xxd = pc.st.time_deriv(xx, xx)
+        xxdd = pc.st.time_deriv(xx, xx, order=2)
 
-        XX = ct.st.row_stack(xx, xxd, xxdd)
-        foo, ddx = ct.setup_objects(XX)
+        XX = pc.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = pc.setup_objects(XX)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
         a1, a2 = aa = sp.Matrix(sp.symbols("a1:3"))
@@ -461,11 +460,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_ord(self):
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xdot1, xdot2, xdot3 = xxd = ct.st.time_deriv(xx, xx)
-        xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xdot1, xdot2, xdot3 = xxd = pc.st.time_deriv(xx, xx)
+        xxdd = pc.st.time_deriv(xx, xx, order=2)
 
         XX = st.concat_rows(xx, xxd, xxdd)
-        XX, dXX = ct.setup_objects(XX)
+        XX, dXX = pc.setup_objects(XX)
 
 
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = dXX
@@ -491,7 +490,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_get_coeff(self):
         xx = st.symb_vector("x, y, z")
-        (x, y, z), (dx, dy, dz) = ct.setup_objects(xx)
+        (x, y, z), (dx, dy, dz) = pc.setup_objects(xx)
         w = 7*dx - x**2*dy
         c1 = w.get_coeff(dx)
         c2 = w.get_coeff(dy)
@@ -502,7 +501,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
     def test_get_multiplied_baseform(self):
 
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xx, dxx = ct.setup_objects(xx)
+        xx, dxx = pc.setup_objects(xx)
         dx1, dx2, dx3 = dxx
 
         W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
@@ -540,7 +539,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
     def test_get_baseform(self):
 
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xx, dxx = ct.setup_objects(xx)
+        xx, dxx = pc.setup_objects(xx)
         dx1, dx2, dx3 = dxx
 
         W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
@@ -575,7 +574,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_get_baseform_from_plain_index(self):
         x1, x2, x3 = xx = st.symb_vector("x1, x2, x3")
-        xx, dxx = ct.setup_objects(xx)
+        xx, dxx = pc.setup_objects(xx)
         dx1, dx2, dx3 = dxx
 
         W = 7*(dx1^dx2) + 3*x2*(dx1^dx3)
@@ -605,17 +604,17 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_coeff_ido_do(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.time_deriv(xx, xx)
-        xxdd = ct.st.time_deriv(xx, xx, order=2)
+        xxd = pc.st.time_deriv(xx, xx)
+        xxdd = pc.st.time_deriv(xx, xx, order=2)
 
 
-        full_basis = ct.st.row_stack(xx, xxd, xxdd)
-        foo, ddx = ct.setup_objects(full_basis)
+        full_basis = pc.st.row_stack(xx, xxd, xxdd)
+        foo, ddx = pc.setup_objects(full_basis)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3, dxddot1, dxddot2, dxddot3 = ddx
 
         aa = sp.Matrix(sp.symbols("a1:10"))
         a1, a2, a3, a4, a5, a6, a7, a8, a9 = aa
-        aad = ct.st.time_deriv(aa, aa)
+        aad = pc.st.time_deriv(aa, aa)
         #adot1, adot2, adot3 =\
 
         mu1 = a1*dxdot1 + 3*a2*dx2
@@ -636,20 +635,20 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), c_star)
 
         # in the following dos means difforder symbol
-        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
+        res1, dos = pc.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1)
 
         # test array type for sigma
-        sigma_arr = ct.np.array([6.0, 7.0, 8.0])
-        res1b, dos = ct.coeff_ido_derivorder( sigma_arr, mu1, mu2, mu3, tds=aa)
+        sigma_arr = pc.np.array([6.0, 7.0, 8.0])
+        res1b, dos = pc.coeff_ido_derivorder( sigma_arr, mu1, mu2, mu3, tds=aa)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1b)
 
         sigma2 = (5, 7, 8)
-        res2, dos = ct.coeff_ido_derivorder(sigma2, mu1, mu2, mu3, tds=aa)
+        res2, dos = pc.coeff_ido_derivorder(sigma2, mu1, mu2, mu3, tds=aa)
         self.assertEqual(res2, 0)
 
         sigma3 = (5, 6, 7)
-        res3, dos = ct.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
+        res3, dos = pc.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
         assert res3.has(dos)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
@@ -664,14 +663,14 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             sigma5 = (1, 6, 7)
-            ct.coeff_ido_derivorder(sigma5, mu1, mu2, mu3, tds=aa)
+            pc.coeff_ido_derivorder(sigma5, mu1, mu2, mu3, tds=aa)
 
     def test_coeff_ido_do2(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
-        xxd = ct.st.time_deriv(xx, xx)
+        xxd = pc.st.time_deriv(xx, xx)
 
-        full_basis = ct.st.row_stack(xx, xxd)
-        foo, ddx = ct.setup_objects(full_basis)
+        full_basis = pc.st.row_stack(xx, xxd)
+        foo, ddx = pc.setup_objects(full_basis)
         dx1, dx2, dx3, dxdot1, dxdot2, dxdot3 = ddx
 
         aa = sp.Matrix(sp.symbols("a1:10"))
@@ -688,11 +687,11 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         with self.assertRaises(ValueError) as cm:
             # the indices are too high
-            ct.coeff_ido_derivorder(sigma1b, mu1, mu2, mu3)
+            pc.coeff_ido_derivorder(sigma1b, mu1, mu2, mu3)
 
         # important to call this before mu_i.jet_extend_basis()
-        res2, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
-        res3, dos = ct.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
+        res2, dos = pc.coeff_ido_derivorder(sigma1, mu1, mu2, mu3, tds=aa)
+        res3, dos = pc.coeff_ido_derivorder(sigma3, mu1, mu2, mu3, tds=aa)
 
         mu1.jet_extend_basis()
         mu2.jet_extend_basis()
@@ -701,7 +700,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         Mu_0 = mu1^mu2^mu3
         Mu_1 = mu1.dot(aa)^mu2.dot(aa)^mu3.dot(aa)
 
-        res1, dos = ct.coeff_ido_derivorder(sigma1, mu1, mu2, mu3)
+        res1, dos = pc.coeff_ido_derivorder(sigma1, mu1, mu2, mu3)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res2)
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma1), res1)
 
@@ -724,10 +723,10 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-tan(x1), 0, x3]])
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
 
-        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
 
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         w1_tilde = w.get_differential_form(0)
         self.assertEquals(w1.coeff, w1_tilde.coeff)
 
@@ -745,7 +744,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [x3/sin(x1), 1, 0],
             [-tan(x1), 0, x3]])
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         w_0 = w.get_coeff_from_idcs(0)
         Q_0 = Q_.col(0)
         self.assertEquals(w_0, Q_0)
@@ -770,11 +769,11 @@ class TestVectorDifferentialForms(unittest.TestCase):
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
 
         # 1-forms
-        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
 
         # vector 1-form
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         
         w1_unpacked, w2_unpacked = w.unpack()
 
@@ -797,14 +796,14 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-tan(x1), 0, x3]])
 
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         # 1-forms
         Q2 = sp.Matrix([
             [x1, x2, x3]])
 
         Q2_ = st.col_stack(Q2, sp.zeros(1, 6))
-        w2 = ct.DifferentialForm(1, XX, coeff=Q2_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q2_[0,:])
 
         w.append(w2)
 
@@ -815,7 +814,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [x1, x2, x3]])
 
         B_ = st.col_stack(B, sp.zeros(3, 6))
-        b = ct.VectorDifferentialForm(1, XX, coeff=B_)
+        b = pc.VectorDifferentialForm(1, XX, coeff=B_)
 
         self.assertEqual(w.coeff, b.coeff)
 
@@ -835,7 +834,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-tan(x1), 0, x3]])
 
         Q1_ = st.col_stack(Q1, sp.zeros(2, 6))
-        w1 = ct.VectorDifferentialForm(1, XX, coeff=Q1_)
+        w1 = pc.VectorDifferentialForm(1, XX, coeff=Q1_)
 
         # 1-forms
         Q2 = sp.Matrix([
@@ -843,7 +842,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [x3, x1, x2]])
 
         Q2_ = st.col_stack(Q2, sp.zeros(2, 6))
-        w2 = ct.VectorDifferentialForm(1, XX, coeff=Q2_)
+        w2 = pc.VectorDifferentialForm(1, XX, coeff=Q2_)
 
         w1.append(w2)
 
@@ -870,12 +869,12 @@ class TestVectorDifferentialForms(unittest.TestCase):
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
 
         # 1-forms
-        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
-        w_stacked = ct.stack_to_vector_form(w1, w2)
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w_stacked = pc.stack_to_vector_form(w1, w2)
 
         # vector 1-form
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         self.assertEquals(w.coeff, w_stacked.coeff)
 
@@ -890,7 +889,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-tan(x1), 0, x3]])
 
 
-        W = ct.VectorDifferentialForm(1, xx, coeff=Q)
+        W = pc.VectorDifferentialForm(1, xx, coeff=Q)
 
         W1 = s*W
 
@@ -899,7 +898,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         self.assertEqual(W1.coeff, s*W.coeff)
         self.assertEqual(W2.coeff, C*W.coeff)
 
-        alpha = ct.DifferentialForm(1, xx)
+        alpha = pc.DifferentialForm(1, xx)
         with self.assertRaises(TypeError) as cm:
             alpha*W1
         with self.assertRaises(TypeError) as cm:
@@ -932,11 +931,11 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-C*s,1]])
 
         # 1-forms
-        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
 
         # vector 1-form
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         t = w.left_mul_by(M1, s, [C]) 
         t2 = -C*w1.dot() + w2
@@ -963,11 +962,11 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-C,1]])
 
         # 1-forms
-        w1 = ct.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = ct.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
 
         # vector 1-form
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         t = w.left_mul_by(M2, additional_symbols=[C])
         # object to compare with:
@@ -995,7 +994,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-C*s**2,1]])
 
         # vector 1-forms
-        w = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
        
         with self.assertRaises(Exception) as cm:
             # raises NotImplemented but this might change
@@ -1021,7 +1020,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         B_ = st.col_stack(B, sp.zeros(2, 6))
 
         # vector 1-forms
-        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_).subs(C, -tan(x1))
+        omega = pc.VectorDifferentialForm(1, XX, coeff=Q_).subs(C, -tan(x1))
 
         self.assertEqual(B_, omega.coeff)
 
@@ -1043,14 +1042,14 @@ class TestVectorDifferentialForms(unittest.TestCase):
         B_ = st.col_stack(B, sp.zeros(2, 6))
 
         # vector 1-forms
-        omega_a = ct.VectorDifferentialForm(1, XX, coeff=A_)
-        omega_b = ct.VectorDifferentialForm(1, XX, coeff=B_)
+        omega_a = pc.VectorDifferentialForm(1, XX, coeff=A_)
+        omega_b = pc.VectorDifferentialForm(1, XX, coeff=B_)
         
         omega_c = omega_a + omega_b
         
         # vector form to compare with
         Q_ = A_ + B_
-        omega_comp = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        omega_comp = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         self.assertEqual(omega_c.coeff, omega_comp.coeff)
 
@@ -1072,14 +1071,14 @@ class TestVectorDifferentialForms(unittest.TestCase):
         B_ = st.col_stack(B, sp.zeros(2, 6))
 
         # vector 1-forms
-        omega_a = ct.VectorDifferentialForm(1, XX, coeff=A_)
-        omega_b = ct.VectorDifferentialForm(1, XX, coeff=B_)
+        omega_a = pc.VectorDifferentialForm(1, XX, coeff=A_)
+        omega_b = pc.VectorDifferentialForm(1, XX, coeff=B_)
         
         omega_c = omega_a - omega_b
         
         # vector form to compare with
         Q_ = A_ - B_
-        omega_comp = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        omega_comp = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         self.assertEqual(omega_c.coeff, omega_comp.coeff)
 
@@ -1096,7 +1095,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
 
         # vector 1-forms
-        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        omega = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         omega_dot = omega.dot()
 
         
@@ -1106,7 +1105,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         omega_2dot = omega_2.dot()
         Qdot_ = st.row_stack(omega_1dot.coeff.T, omega_2dot.coeff.T)
         # vector form to compare with
-        omegadot_comp = ct.VectorDifferentialForm(1, XX, coeff=Qdot_)
+        omegadot_comp = pc.VectorDifferentialForm(1, XX, coeff=Qdot_)
 
         self.assertEqual(omega_dot.coeff, omegadot_comp.coeff)
 
@@ -1123,7 +1122,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
 
         # vector 1-forms
-        omega = ct.VectorDifferentialForm(1, XX, coeff=Q_)
+        omega = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
         with self.assertRaises(ValueError) as cm:
             # coordinates are not part of basis
@@ -1135,8 +1134,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
         Q = sp.Matrix([[sin(x1)**2 + cos(x1)**2 - 1, 0, 0],
                        [0, x3*(1 - sin(x2)**2) -cos(x2)**2*x3, 0]])
 
-        Omega = ct.VectorDifferentialForm(1, xx, coeff=Q)
-        Omega2 = ct.simplify(Omega)
+        Omega = pc.VectorDifferentialForm(1, xx, coeff=Q)
+        Omega2 = pc.simplify(Omega)
         self.assertEqual(Omega2.coeff, 0*Omega.coeff)
 
 
