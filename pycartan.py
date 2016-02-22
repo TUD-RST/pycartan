@@ -195,11 +195,15 @@ class DifferentialForm(CantSympify):
         if isinstance(f, DifferentialForm):
             return self.wp(f)
 
-        # now scalar multiplication
-        new_form = DifferentialForm(self.grad, self.basis)
+        if st.is_scalar(f):
+            # now scalar multiplication
+            new_form = DifferentialForm(self.grad, self.basis)
 
-        new_form.coeff = self.coeff * f
-        return new_form
+            new_form.coeff = self.coeff * f
+            return new_form
+        else:
+            msg = "Multiplication not implemented for types: %s and %s" % ( type(self), type(f) )
+            raise TypeError(msg)
 
     def __div__(self, arg):
 
@@ -1001,6 +1005,30 @@ class VectorDifferentialForm(CantSympify):
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
         new_vector_form.coeff = self.coeff + a.coeff
+
+        return new_vector_form
+
+    def __mul__(self, a):
+        if not st.is_scalar(a):
+            msg = "Multiplication of %s and %s not (currently) not allowed. " \
+                  "Maybe use .left_mul_by(...)."
+            msg = msg %(type(self), type(a))
+            raise TypeError(msg)
+
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+        new_vector_form.coeff = self.coeff*a
+
+        return new_vector_form
+
+    def __rmul__(self, a):
+        if not st.is_scalar(a):
+            msg = "Reverse multiplication of %s and %s not (currently) not allowed. " \
+                  "Maybe use .left_mul_by(...)."
+            msg = msg %(type(self), type(a))
+            raise TypeError(msg)
+
+        new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+        new_vector_form.coeff = a*self.coeff
 
         return new_vector_form
 

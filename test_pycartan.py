@@ -879,13 +879,45 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         self.assertEquals(w.coeff, w_stacked.coeff)
 
+    def test_mul(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
+
+        s  = sp.Symbol('s', commutative=False)
+        C  = sp.Symbol('C', commutative=False)
+
+        Q = sp.Matrix([
+            [x3/sin(x1), 1, 0],
+            [-tan(x1), 0, x3]])
+
+
+        W = ct.VectorDifferentialForm(1, xx, coeff=Q)
+
+        W1 = s*W
+
+        W2 = W*C
+
+        self.assertEqual(W1.coeff, s*W.coeff)
+        self.assertEqual(W2.coeff, C*W.coeff)
+
+        alpha = ct.DifferentialForm(1, xx)
+        with self.assertRaises(TypeError) as cm:
+            alpha*W1
+        with self.assertRaises(TypeError) as cm:
+            W1*alpha
+
+        M = sp.eye(2)
+        with self.assertRaises(sp.SympifyError) as cm:
+            M*W1
+        with self.assertRaises(TypeError) as cm:
+            W1*M
+
     def test_left_mul_by_1(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
         xdot1, xdot2, xdot3 = xxdot = st.time_deriv(xx, xx)
         xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
-        
+
         s  = sp.Symbol('s', commutative=False)
         C  = sp.Symbol('C', commutative=False)
 
@@ -1097,6 +1129,15 @@ class TestVectorDifferentialForms(unittest.TestCase):
             # coordinates are not part of basis
             omega.dot().dot().dot()
 
+    def test_simplify(self):
+        x1, x2, x3 = xx = st.symb_vector('x1:4',)
+
+        Q = sp.Matrix([[sin(x1)**2 + cos(x1)**2 - 1, 0, 0],
+                       [0, x3*(1 - sin(x2)**2) -cos(x2)**2*x3, 0]])
+
+        Omega = ct.VectorDifferentialForm(1, xx, coeff=Q)
+        Omega2 = ct.simplify(Omega)
+        self.assertEqual(Omega2.coeff, 0*Omega.coeff)
 
 
 def main():
