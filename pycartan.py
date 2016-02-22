@@ -1379,6 +1379,19 @@ def contraction(vf, form):
 
     return result
 
+def simplify(arg, **kwargs):
+    """
+    Simplification Function which is aware of (Vector)DifferentialForms
+    """
+    
+    if isinstance(arg, (DifferentialForm, VectorDifferentialForm)):
+        copy = arg*1
+        copy.simplify(**kwargs)
+        return copy
+    else:
+        return sp.simplify(arg, **kwargs)
+        
+    
 
 # Keilprodukt zweier Differentialformen
 def keilprodukt(df1, df2):
