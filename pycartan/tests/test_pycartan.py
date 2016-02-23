@@ -9,9 +9,9 @@ import unittest
 import sympy as sp
 from sympy import sin, cos, exp, tan
 
-import symb_tools as st
 import pycartan as pc
-import non_commutative_tools as nct
+import symbtools as st
+import symbtools.noncommutativetools as nct
 
 from IPython import embed as IPS
 
@@ -295,10 +295,10 @@ class ExteriorAlgebraTests(unittest.TestCase):
             with self.assertRaises(ValueError) as cm:
                 w.integrate()
 
-        y1 = a*sp.log(cos(b*x1)**2)
+        y1 = a*sp.log(cos(b*x1))
         dy1 = pc.d(y1, self.xx)
         y1b = dy1.integrate()
-        self.assertEqual(y1, y1b)
+        self.assertEqual(sp.simplify(y1 - y1b), 0)
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))

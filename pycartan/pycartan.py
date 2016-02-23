@@ -12,8 +12,8 @@ import sympy as sp
 from sympy.core.sympify import CantSympify
 import itertools as it
 
-import symb_tools as st  # needed for make_global, time_deriv, srn
-import non_commutative_tools as nct
+import symbtools as st  # needed for make_global, time_deriv, srn
+import symbtools.noncommutativetools as nct
 
 from IPython import embed as IPS
 
@@ -131,7 +131,7 @@ class DifferentialForm(CantSympify):
             # TODO: use a row vector here
             self.coeff = sp.Matrix(coeff).reshape(self.num_coeff, 1)
 
-        self.name = name  # useful for symb_tools.make_global
+        self.name = name  # useful for symbtools.make_global
 
     # quick hack combine new name with backward compability
     @property
@@ -1524,8 +1524,8 @@ def setup_objects(n):
 
     bf = basis_1forms(xx)
 
-    st.make_global(xx, up_count=2)
-    st.make_global(bf, up_count=2)
+    st.make_global(xx, upcount=2)
+    st.make_global(bf, upcount=2)
 
     return xx, bf
 
