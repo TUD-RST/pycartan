@@ -1,4 +1,7 @@
 
+.. image:: https://badge.fury.io/py/pycartan.svg
+    :target: https://badge.fury.io/py/pycartan
+
 (English version below)
 
 Allgemeines
@@ -31,3 +34,21 @@ There are dependencies to another non-standard module: https://github.com/cknoll
 
 Feedback - regardless of its sign - is welcome.
 Contact: http://cknoll.github.io/pages/impressum.html
+
+Installation
+============
+Make sure you have the following dependencies installed:
+
+- sympy
+- numpy
+- symbtools
+- ipython
+
+Get pycartan using PyPI::
+
+    $ pip install pycartan
+
+or the latest git version::
+
+    $ git clone https://github.com/cknoll/pycartan.git
+
