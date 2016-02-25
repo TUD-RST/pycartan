@@ -15,6 +15,7 @@ import symbtools.noncommutativetools as nct
 
 from IPython import embed as IPS
 
+
 class ExteriorAlgebraTests(unittest.TestCase):
 
     def setUp(self):
@@ -61,7 +62,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         w1 = x2*dx1 + x5*dx3 - dx4
         w1 += dx2*sp.exp(x3)
-        
+
         w2 = w1/x3
 
         w3 = w1*1/x1
@@ -73,20 +74,20 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         with self.assertRaises(TypeError) as cm:
             x1 + dx2
-            
+
         with self.assertRaises(TypeError) as cm:
             1/dx2
-            
+
         with self.assertRaises(TypeError) as cm:
             dx1/dx2
 
         with self.assertRaises(Exception) as cm:
             # raises NotImplemented but this might change in further versions of sympy
             dx1/sp.eye(3)
-            
+
     def test_calculation_a(self):
         xx = st.symb_vector('x1:6')
-        
+
         dx1 = pc.DifferentialForm(1, xx, coeff=[1,0,0,0,0])
 
     def test_calculation2(self):
@@ -150,19 +151,19 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         s1 = str(7*a*dx1*dx2 - dx2*dx3)
         self.assertEqual(s1, '(7*a)dx1^dx2  +  (-1)dx2^dx3')
-        
+
         w2 = -sin(x3)*dx1 + cos(x3)*dx2
         w3 = dx3
         s1 = str(w2.d^w3)
         self.assertEqual(s1, '(0)dx1^dx2^dx3')
-        
+
         s1 = str(w2.d^w2^w3)
         self.assertEqual(s1, '(0)dx1^dx1^dx1^dx1')
-        
+
         s1 = str(w2^w2^w2^ w2^w2^w2)
         self.assertEqual(s1, '(0)dx1'+'^dx1'*5)
-        
-        
+
+
 
     def test_simplify(self):
         a, f, r = sp.symbols('a, f, r')
@@ -226,12 +227,12 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(dh2.coeff[3], h2.diff(x4))
         self.assertEqual(dh2.coeff[4], h2.diff(x5))
 
-    def test_integrate(self):
+    def test_integrate1(self):
         x1, x2, x3, x4, x5 = self.xx
 
         a, b = sp.symbols('a, b', nonzero=True)
 
-        if 0:
+        if 1:
             y1 = x1 + sin(x3)*x2
             dy1 = pc.d(y1, self.xx)
             self.assertTrue(dy1.d.is_zero())
@@ -253,11 +254,6 @@ class ExteriorAlgebraTests(unittest.TestCase):
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
-            y1 = x1 + sin(x3)*x2**2*sp.exp(x1) + sin(x2)*x3
-            dy1 = pc.d(y1, self.xx)
-            y1b = dy1.integrate()
-            self.assertEqual(y1, y1b)
-
             y1 = x2*cos(x1) + x5*cos(x4)
             dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
@@ -273,20 +269,16 @@ class ExteriorAlgebraTests(unittest.TestCase):
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
 
-            # tests for some simplification problem
-            y1 = sp.log(x2) + sp.log(sin(x1) - 1)/2 + sp.log(sin(x1) + 1)/2
-            dx1, dx2, dx3, dx4, dx5 = self.dx
-            dy1 = (-sp.tan(x1))*dx1 + (1/x2)*dx2
+            y1 = a*x1 + b*x2 + a*b*cos(x3)
+            dy1 = pc.d(y1, self.xx)
+            y1b = dy1.integrate()
+            self.assertEqual(sp.simplify(y1 - y1b), 0)
+
+            y1 = x1 + sin(x3)*x2**2*sp.exp(x1) + sin(x2)*x3
+            # y1 = x1 + sin(x3)*x2**1*sp.exp(x1) + sin(x2)*x3
+            dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
-
-            # another variant
-            y1 = sp.log(x2) + sp.log(sin(x1) - 1)/2 + sp.log(sin(x1) + 1)/2
-            dx1, dx2, dx3, dx4, dx5 = self.dx
-            dy1 = (-sp.sin(x1)/sp.cos(x1))*dx1 + (1/x2)*dx2
-            y1b = dy1.integrate()
-            self.assertEqual(y1, y1b)
-
 
             y1 = sin(x1 + x2 + x3)
             dy1 = pc.d(y1, self.xx)
@@ -295,10 +287,43 @@ class ExteriorAlgebraTests(unittest.TestCase):
             with self.assertRaises(ValueError) as cm:
                 w.integrate()
 
-        y1 = a*sp.log(cos(b*x1))
-        dy1 = pc.d(y1, self.xx)
-        y1b = dy1.integrate()
-        self.assertEqual(sp.simplify(y1 - y1b), 0)
+    def test_integrate2(self):
+        x1, x2, x3, x4, x5 = self.xx
+
+        a, b = sp.symbols('a, b', nonzero=True)
+
+        if 1:
+            # tests for some simplification problem
+
+            y1 = sp.log(x2) + sp.log(cos(x1))
+            dx1, dx2, dx3, dx4, dx5 = self.dx
+            dy1 = (-sp.tan(x1))*dx1 + (1/x2)*dx2
+            y1b = dy1.integrate()
+            self.assertEqual(y1, y1b)
+
+            y1 = sp.log(x2) + sp.log(sin(x1) - 1)/2 + sp.log(sin(x1) + 1)/2
+            dx1, dx2, dx3, dx4, dx5 = self.dx
+            dy1 = (-sp.tan(x1))*dx1 + (1/x2)*dx2
+            y1b = dy1.integrate()
+            difference = y1-y1b
+            # this is not zero but it does not depend on xx:
+            grad = sp.simplify(st.gradient(difference, self.xx))
+            self.assertEqual(grad, grad*0)
+
+            # another variant
+            y1 = sp.log(x2) + sp.log(sin(x1) - 1)/2 + sp.log(sin(x1) + 1)/2
+            dx1, dx2, dx3, dx4, dx5 = self.dx
+            dy1 = (-sp.sin(x1)/sp.cos(x1))*dx1 + (1/x2)*dx2
+            y1b = dy1.integrate()
+            difference = y1-y1b
+            # this is not zero but it does not depend on xx:
+            grad = sp.simplify(st.gradient(difference, self.xx))
+            self.assertEqual(grad, grad*0)
+
+            y1 = a*sp.log(cos(b*x1))
+            dy1 = pc.d(y1, self.xx)
+            y1b = dy1.integrate()
+            self.assertEqual(sp.simplify(y1 - y1b), 0)
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
@@ -589,26 +614,26 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         res = W.get_baseform_from_plain_index(0)
         self.assertEqual(res, dx1^dx2)
-        
+
         res = W.get_baseform_from_plain_index(2)
         self.assertEqual(res, dx2^dx3)
-        
+
         res = W.get_baseform_from_plain_index(-1)
         self.assertEqual(res, dx2^dx3)
-        
+
         res = W.get_baseform_from_plain_index(-2)
         self.assertEqual(res, dx1^dx3)
-        
+
         res = W.get_baseform_from_plain_index(-3)
         self.assertEqual(res, dx1^dx2)
 
 
         with self.assertRaises(ValueError) as cm:
             res = W.get_baseform_from_plain_index(3)
-            
+
         with self.assertRaises(ValueError) as cm:
             res = W.get_baseform_from_plain_index(-4)
-        
+
 
     def test_coeff_ido_do(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))

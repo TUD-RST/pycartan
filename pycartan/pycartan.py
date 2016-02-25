@@ -652,103 +652,48 @@ class DifferentialForm(CantSympify):
             msg = "This form seem not to be closed (self.d != 0 )"
             raise ValueError(msg)
 
-        # generator for integration "constants" (which might depend on other vars)
-        ic_gen = sp.numbered_symbols('IC_', sp.Function)
-        ic_list = []
-        res_list = []
         complete_basis = list(self.basis)
 
-        for i, (b, c) in enumerate(zip(self.basis, self.coeff)):
-            # ode = F(b).diff(b) - c
-            #
-            # sol = sp.dsolve(ode, F(b))
-            if c == 0:
-                continue
+        r = st.sca_integrate(self.coeff[0], self.basis[0]).simplify()
 
-            # integration constant might depend on all vars but b
-            reduced_basis = list(complete_basis)
-            reduced_basis.pop(i)
-            ic = ic_gen.next()(*reduced_basis)
+        total_deriv = d(r, self.basis)
 
-            # store the missing argument as new attribute
-            ic.missing_arg = b
-            ic_list.append(ic)
-            res = st.sca_integrate(c, b) + ic
-            res_list.append(res)
+        difference = simplify(self - total_deriv)
 
-        # now we have to determine the integration constants from a system of
-        # linear algebraic equations and some extra conditions
+        if not difference.coeff[0] == 0:
+            # this is my assumption
+            msg = "Unexpected result while integration of 1-form"
+            raise ValueError(msg)
 
-        # to understand this algorithm use the example y = x1 + x2*sin(x3); self = dy
-        # There are N integration constants and N-1 differences which must vanish
-        # so there is one degree of freedom which must be used according to which symbols
-        # the integration constants depend on
+        if difference.is_zero():
+            result = r
+        else:
+            # the actual result is r + IC(x2, ..., xn)
+            # now determine IC from the equation: d(IC) = difference
 
-        N = len(res_list)
-        if N == 0:
-            return 0
-
-        sol_list = []
-
-        for i in xrange(N-1):
-
-            difference = (res_list[i+1] - res_list[i]).subs(sol_list)
-            ic1, ic2 = ic_list[i:i+2]
-
-            if i == 0 or ic1 not in zip(*sol_list)[0]:
-
-                rest = difference.subs(st.zip0(ic_list))
-
-                if rest == 0:
-                    # this means: difference == ic2 - ic1
-                    sol_list += [(ic1, ic2)]
-                    continue
-
-                arg1 = ic1.missing_arg
-                rest_d1 = rest.diff(arg1)
-
-                ic1_sol = rest - st.sca_integrate(rest_d1, arg1)
-
-                new_rest = difference.subs(ic1, ic1_sol).subs(ic2, 0)
-                arg2 = ic2.missing_arg
-                new_rest_d2 = new_rest.diff(arg2)
-
-                ic2_sol = -(new_rest - st.sca_integrate(new_rest_d2, arg2))
-
-                sol_list += [(ic1, ic1_sol), (ic2, ic2_sol)]
-            else:
-                new_rest = difference.subs(ic2, 0)
-
-                ic2_sol = -new_rest
-                sol_list += [(ic2, ic2_sol)]
-
-            if not difference.subs(sol_list) == 0:
-                msg = "Unexpected result while calculating integration constants"
+            if self.dim_basis == 1:
+                # sympy.integrate should have solved this problem
+                msg = "Unexpected result while integration of 1-form"
                 raise ValueError(msg)
 
-            # eqn_list.append(res_list[i+1] - res_list[i])
+            assert self.dim_basis > 1
 
-        # there might still be some integration constants undetermined
-        # (especially in the case N==1)
-        # to handle this, all remaining constants are set to zero:
-        sol_list += st.zip0(ic_list)
+            # integration constant might depend on all remaning vars
+            reduced_basis = complete_basis[1:]
+            delta = DifferentialForm(1, reduced_basis, difference.coeff[1:])
 
-        results = sp.Matrix(res_list).subs(sol_list)
-
-        # the results should be the all the same
-
-        for r in results[1:]:
-            assert r == results[0]
+            IC = delta.integrate()
+            result = sp.simplify(r + IC)
 
         # final test: take the exterior derivative and compare to self
-        result_d_coeff = sp.simplify( d(results[0], self.basis).coeff )
+        result_d_coeff = sp.simplify( d(result, self.basis).coeff )
         self_coeff = sp.simplify(self.coeff)
         if not result_d_coeff == self_coeff:
-            msg = "Unexpected result while calculating integration constants"
+            msg = "Unexpected final result while calculating integration constants"
             IPS()
             raise ValueError(msg)
 
-        return results[0]
+        return result
 
     # TODO: merge with the contract function
     def contract(self, vf):
