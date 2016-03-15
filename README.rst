@@ -1,6 +1,9 @@
 
 .. image:: https://badge.fury.io/py/pycartan.svg
     :target: https://badge.fury.io/py/pycartan
+    
+.. image:: https://travis-ci.org/cknoll/pycartan.svg?branch=master
+    :target: https://travis-ci.org/cknoll/pycartan    
 
 (English version below)
 
@@ -17,8 +20,6 @@ Trotz, dass wesentliche Teile durch Unittests abgedeckt sind, enthält der Code
 mit einer gewissen Wahrscheinlichkeit Fehler.
 
 Feedback-Kontakt: http://cknoll.github.io/pages/impressum.html
-
-
 
 
 
