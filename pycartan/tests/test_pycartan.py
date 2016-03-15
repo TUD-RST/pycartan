@@ -911,6 +911,12 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         self.assertEquals(w.coeff, w_stacked.coeff)
 
+    """
+    the following test fails because sympy does not respect multiplication
+    order for matrix elements. If support for noncommutative coefficients
+    is necessary we should use nct.nc_mul
+    """
+    @unittest.expectedFailure
     def test_mul(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
 
@@ -929,7 +935,10 @@ class TestVectorDifferentialForms(unittest.TestCase):
         W2 = W*C
 
         self.assertEqual(W1.coeff, s*W.coeff)
-        self.assertEqual(W2.coeff, C*W.coeff)
+        self.assertNotEqual(W1.coeff, W.coeff*s)
+        
+        self.assertEqual(W2.coeff, W.coeff*C)
+        self.assertNotEqual(W2.coeff, C*W.coeff)
 
         alpha = pc.DifferentialForm(1, xx)
         with self.assertRaises(TypeError) as cm:
