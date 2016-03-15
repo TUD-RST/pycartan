@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from .pycartan import *
+from core import *
