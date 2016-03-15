@@ -1299,6 +1299,9 @@ def _contract_vf_with_basis_form(vf, idx_tuple):
     #       = x⊗(y^z) - y⊗(x^z) + z⊗(x^y)
 
     # for details, see Spivak Calculus on Manifolds, Chapter 4
+    # Note that, here we use the convention
+    # x^y = (k+l)!/(k!*l!) * Alt(x⊗y)
+    # Some authors omit the leading factor
 
     assert vf.shape[1] == 1 and vf.shape[0] > max(idx_tuple)
     res = []
