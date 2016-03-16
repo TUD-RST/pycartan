@@ -2,7 +2,8 @@
 """
 Created on Thu Oct 09 16:43:00 2014
 
-@author: Carsten Knoll (enhancements, tests)
+@author: Carsten Knoll 
+@author: Klemens Fritzsche
 """
 
 import unittest

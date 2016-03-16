@@ -4,6 +4,7 @@ Created on Tue Sep 03 17:44:46 2013
 
 @author: Torsten Knüppel (original Code)
 @author: Carsten Knoll (enhancements)
+@author: Klemens Fritzsche (enhancements)
 """
 
 from itertools import combinations
