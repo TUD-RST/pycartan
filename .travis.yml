@@ -5,7 +5,9 @@ python:
 
 before_install:
   - git clone https://github.com/cknoll/rst_symbtools.git
-  - python rst_symbtools/setup.py install
+  - cd rst_symbtools
+  - python setup.py install
+  - cd ..
 
 install:
  - python setup.py install
