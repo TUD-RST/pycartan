@@ -960,7 +960,7 @@ class VectorDifferentialForm(CantSympify):
             raise TypeError(msg)
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
-        new_vector_form.coeff = self.coeff*a
+        new_vector_form.coeff = nct.nc_mul(self.coeff, a)
 
         return new_vector_form
 
@@ -972,7 +972,7 @@ class VectorDifferentialForm(CantSympify):
             raise TypeError(msg)
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
-        new_vector_form.coeff = a*self.coeff
+        new_vector_form.coeff = nct.nc_mul(a, self.coeff)
 
         return new_vector_form
 
