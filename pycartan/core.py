@@ -872,7 +872,7 @@ class DifferentialForm(CantSympify):
         # difference set
         ds = set(nz_coords_diff).difference(self.basis)
         if ds:
-            msg = "The thime derivative of this form cannot be calculated. "\
+            msg = "The time derivative of this form cannot be calculated. "\
                   "The following necessary coordinates are not part of self.basis: %s" % ds
             raise ValueError(msg)
 
@@ -1002,7 +1002,7 @@ class VectorDifferentialForm(CantSympify):
         assert isinstance(matrix, sp.MatrixBase)
 
         m1, n1 = matrix.shape
-        assert m1==self.m, "Matrix Dimesion does not fit vector form!"
+        assert n1==self.m, "Matrix Dimesion does not fit vector form!"
 
         # right shift s:
         matrix_shifted = nct.right_shift_all(matrix, s=s, func_symbols=additional_symbols)
