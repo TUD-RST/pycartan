@@ -325,6 +325,21 @@ class ExteriorAlgebraTests(unittest.TestCase):
             dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(sp.simplify(y1 - y1b), 0)
+            
+    
+    def test_integrate3(self):
+        x1, x2, x3, x4, x5 = self.xx
+
+        a, b = sp.symbols('a, b', nonzero=True)
+
+        if 1:
+            y1 = -x3*cos(x1)
+            dy1 = pc.d(y1, self.xx)
+            print dy1
+            self.assertTrue(dy1.d.is_zero())
+            y1b = dy1.integrate()
+            self.assertEqual(y1, y1b)
+
 
     def test_jet_extend_basis1(self):
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
