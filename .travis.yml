@@ -15,11 +15,13 @@ before_install:
 install:
  - conda install --yes -c conda conda-env
  - conda create -n testenv --yes $DEPS pip python=$TRAVIS_PYTHON_VERSION
- - python2 -c "import sys; print ’\n’.join(sys.path)"
+ - python --version
+ - python2 --version
+ - python2 -c "import sys; print '\\n'.join(sys.path)"
  - source activate testenv
  - python --version
  - python2 --version
- - python2 -c "import sys; print ’\n’.join(sys.path)"
+ - python2 -c "import sys; print '\\n'.join(sys.path)"
  - echo $DEPS
  - echo $TRAVIS_PYTHON_VERSION
  - python2 -c "import scipy; print scipy.__version__"
