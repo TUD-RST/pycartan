@@ -14,7 +14,7 @@ import pycartan as pc
 import symbtools as st
 import symbtools.noncommutativetools as nct
 
-from IPython import embed as IPS
+#from IPython import embed as IPS
 
 
 class ExteriorAlgebraTests(unittest.TestCase):
