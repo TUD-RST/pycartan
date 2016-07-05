@@ -16,7 +16,9 @@ install:
  - conda install --yes -c conda conda-env
  - conda create -n testenv --yes $DEPS pip python=$TRAVIS_PYTHON_VERSION
  - source activate testenv
- - python -c "import sympy; print sympy.__version__"
+ - echo $DEPS
+ - echo $TRAVIS_PYTHON_VERSION
+ - python -c "import scipy; print scipy.__version__"
  - git clone https://github.com/cknoll/rst_symbtools.git
  - cd rst_symbtools
  - python setup.py install
