@@ -15,18 +15,21 @@ before_install:
 install:
  - conda install --yes -c conda conda-env
  - conda create -n testenv --yes $DEPS pip python=$TRAVIS_PYTHON_VERSION
- - python -c "import sys; print ’\n’.join(sys.path)"
+ - python2 -c "import sys; print ’\n’.join(sys.path)"
  - source activate testenv
- - python -c "import sys; print ’\n’.join(sys.path)"
+ - python --version
+ - python2 --version
+ - python2 -c "import sys; print ’\n’.join(sys.path)"
  - echo $DEPS
  - echo $TRAVIS_PYTHON_VERSION
- - python -c "import scipy; print scipy.__version__"
+ - python2 -c "import scipy; print scipy.__version__"
+ - python2 -c "import sympy; print sympy.__version__"
  - git clone https://github.com/cknoll/rst_symbtools.git
  - cd rst_symbtools
- - python setup.py install
+ - python2 setup.py install
  - cd ..
- - python setup.py install
+ - python2 setup.py install
 
 # command to run tests
 script:
- - python pycartan/tests/test_pycartan.py
+ - python2 pycartan/tests/test_pycartan.py
