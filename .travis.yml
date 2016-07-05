@@ -4,20 +4,26 @@ python:
   - "2.7"
 
 before_install:
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda2/bin:$PATH
-  - export DEPS="sympy numpy scipy matplotlib ipython pytest"
-  - conda update --yes --no-deps conda
-  - conda update --yes conda
+ - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+ - chmod +x miniconda.sh
+ - ./miniconda.sh -b
+ - whereis activate
+ - export PATH=/home/travis/miniconda2/bin:$PATH
+ - export DEPS="sympy numpy pytest"
+ - conda update --yes --no-deps conda
+ - conda update --yes conda
+ - whereis activate
+  
 
 install:
+ - whereis activate
  - conda install --yes -c conda conda-env
  - conda create -n testenv --yes $DEPS pip python=$TRAVIS_PYTHON_VERSION
- - python --version
+ - whereis activate
  - python2 --version
  - python2 -c "import sys; print '\\n'.join(sys.path)"
+ - python --version
+ - whereis activate
  - source activate testenv
  - python --version
  - python2 --version

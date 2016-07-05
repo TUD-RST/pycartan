@@ -15,7 +15,7 @@ import itertools as it
 import symbtools as st  # needed for make_global, time_deriv, srn
 import symbtools.noncommutativetools as nct
 
-from IPython import embed as IPS
+#from IPython import embed as IPS
 
 
 # # Vorzeichen einer Permutation
