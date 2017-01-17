@@ -7,6 +7,8 @@ Created on Tue Sep 03 17:44:46 2013
 @author: Klemens Fritzsche (enhancements)
 """
 
+from six import string_types  # py2 and 3 compatibility
+
 from itertools import combinations
 import numpy as np
 import sympy as sp
@@ -15,6 +17,8 @@ import itertools as it
 
 import symbtools as st  # needed for make_global, time_deriv, srn
 import symbtools.noncommutativetools as nct
+from symbtools import lzip
+from functools import reduce
 
 #from IPython import embed as IPS
 
@@ -58,7 +62,7 @@ def perm_parity(seq):
     # by Paddy McCarthy
     lst = range_indices(seq)  # normalize the sequence to the first N integers
     parity = 1
-    index_list = range(len(lst))
+    index_list = list(range(len(lst)))
     for i in range(0, len(lst) - 1):
         if lst[i] != i:
             # there must be a smaller number in the remaining list
@@ -79,7 +83,7 @@ def range_indices(seq):
     """
     assert len(set(seq)) == len(seq)
 
-    new_elements = range(len(seq))
+    new_elements = list(range(len(seq)))
 
     res = [None] * len(seq)
 
@@ -119,7 +123,7 @@ class DifferentialForm(CantSympify):
         else:
             # this is a list like [(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)]
             #TODO: this should be renamed to index_tuples
-            self.indizes = list(combinations(range(self.dim_basis), self.grad))
+            self.indizes = list(combinations(list(range(self.dim_basis)), self.grad))
 
         # number of coefficient
         self.num_coeff = len(self.indizes)
@@ -207,7 +211,10 @@ class DifferentialForm(CantSympify):
             raise TypeError(msg)
 
     def __div__(self, arg):
-
+        # python2 leagacy compatibility
+        return self.__truediv__(arg)
+        
+    def __truediv__(self, arg):
         msg = "Unexpected arg for div: %s of type(%s)" % (str(arg), type(arg))
         try:
             arg = sp.sympify(arg)
@@ -248,7 +255,7 @@ class DifferentialForm(CantSympify):
         assert len(ind) == self.grad
         try:
             ind_1d, vz = self.__getindexperm__(ind)
-        except ValueError, ve:
+        except ValueError as ve:
             raise ValueError("Invalid Index; " + ve.message)
         else:
             return vz * self.coeff[ind_1d]
@@ -321,7 +328,7 @@ class DifferentialForm(CantSympify):
         returns a list of tuples (coeff, idcs) for each index-tuple idcs,
         where the corresponding coeff != 0
         """
-        Z = zip(self.coeff, self.indices)
+        Z = lzip(self.coeff, self.indices)
 
         if srn == "prime":
             res = [(c, idcs) for (c, idcs) in Z if abs(st.subs_random_numbers(c, prime=True)) > eps]
@@ -413,7 +420,7 @@ class DifferentialForm(CantSympify):
 
         # get the highest scalar index (basis index) which occurs in any nonzero index tuple
 
-        nz_idx_array = np.array(zip(*nzt)[1])
+        nz_idx_array = np.array(lzip(*nzt)[1])
         highest_base_index = np.max(nz_idx_array)
 
         res = int(highest_base_index/base_length)
@@ -854,7 +861,7 @@ class DifferentialForm(CantSympify):
             # -> return a copy
             return 0*self
 
-        idx_tups, coeffs = zip(*nz_tups)
+        idx_tups, coeffs = lzip(*nz_tups)
         # idx_tups = e.g. [(1, 4), ...] (2-Form) or [(0,), (2,), ....] (1-Form)
 
         # nested list comprehension http://stackoverflow.com/a/952952/333403
@@ -931,7 +938,7 @@ class VectorDifferentialForm(CantSympify):
             self.coeff = sp.Matrix([])
 
         self._w = []
-        for i in xrange(0, self.m):
+        for i in range(0, self.m):
             w1_coeffs = coeff.row(i)
             wi = DifferentialForm(self.degree, self.basis, coeff=w1_coeffs)
             self._w.append(wi)
@@ -991,7 +998,7 @@ class VectorDifferentialForm(CantSympify):
 
     def simplify(self, *args, **kwargs):
         self.coeff.simplify(*args, **kwargs)
-        for i in xrange(0, self.m):
+        for i in range(0, self.m):
             self._w[i].coeff.simplify(*args, **kwargs)
 
     def left_mul_by(self, matrix, s=None, additional_symbols=None):
@@ -1018,9 +1025,9 @@ class VectorDifferentialForm(CantSympify):
             M0 = matrix_shifted - M1*s
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
-        for i in xrange(0, m1):
+        for i in range(0, m1):
             new_wi = DifferentialForm(1, self.basis)
-            for j in xrange(0, n1):
+            for j in range(0, n1):
                 new_wi += M0[i,j] * self.get_differential_form(j)
                 if not s==None:
                     new_wi += M1[i,j] * self.get_differential_form(j).dot(additional_symbols)
@@ -1030,14 +1037,14 @@ class VectorDifferentialForm(CantSympify):
 
     def dot(self):
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
-        for i in xrange(0, self.m):
+        for i in range(0, self.m):
             new_wi = self.get_differential_form(i).dot()
             new_vector_form.append(new_wi)
         return new_vector_form
 
     def unpack(self):
         ww = []
-        for i in xrange(0, self.m):
+        for i in range(0, self.m):
             ww.append(self._w[i])
         return tuple(ww)
 
@@ -1076,7 +1083,7 @@ def stack_to_vector_form(*arg):
         k = arg[0].degree
 
         coeff_matrix = sp.Matrix([])
-        for i in xrange(0, len(arg)):
+        for i in range(0, len(arg)):
             coeff_matrix_i = arg[i].coeff.T
             coeff_matrix = st.row_stack(coeff_matrix, coeff_matrix_i)
 
@@ -1149,7 +1156,7 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
     n = deriv_orders.index(min_do + 1)
     assert len(deriv_orders) % n == 0
     #groups = []
-    for i in range(len(deriv_orders)/n):
+    for i in range(int(len(deriv_orders)/n)):
         tmp_group = deriv_orders[n*i: n*(i+1)]
         msg2 = "All group elements are expected to be identical"
         assert all( elt == tmp_group[0] for elt in tmp_group), msg2
@@ -1213,7 +1220,7 @@ def coeff_ido_derivorder(sigma, *factors, **kwargs):
                 zeta.coeff[i] = c
                 continue
 
-            S_tmp = gen_S.next()
+            S_tmp = next(gen_S)
             replacements_S.append( (S_tmp, c) )
             S_list.append(S_tmp)
             zeta.coeff[i] = S_tmp
@@ -1264,11 +1271,11 @@ def pull_back(phi, args, omega):
     assert isinstance(omega, DifferentialForm)
 
     if omega.grad > 1:
-        raise NotImplementedError, "Not yet implemented"
+        raise NotImplementedError("Not yet implemented")
 
     # the arguments of phi are the new basis symbols
 
-    subs_trafo = zip(omega.basis, phi)
+    subs_trafo = lzip(omega.basis, phi)
     new_coeffs = omega.coeff.T.subs(subs_trafo) * phi.jacobian(args)
 
     res = DifferentialForm(omega.grad, args, coeff=new_coeffs)
@@ -1341,7 +1348,7 @@ def contraction(vf, form):
     nzt = form.nonzero_tuples()
 
     # example: A = c1*dx0^dx1 + c2*dx2^dx4 + ...
-    coeffs, index_tuples = zip(*nzt)  # -> [(c1, c2, ...), ((0,1), (2, 4), ...)]
+    coeffs, index_tuples = lzip(*nzt)  # -> [(c1, c2, ...), ((0,1), (2, 4), ...)]
 
     # our result will go there
     result = DifferentialForm(form.grad - 1, form.basis)
@@ -1410,7 +1417,7 @@ def wp(a, b, *args):
     name = "%s^%s" % (a.name, b.name)
     res = DifferentialForm(DEG, a.basis, name=name)
 
-    new_base_tuples = list(it.combinations(range(N), DEG))
+    new_base_tuples = list(it.combinations(list(range(N)), DEG))
 
     NZ_a = a.nonzero_tuples()  # list of tuples: (coeff, indices)
     NZ_b = b.nonzero_tuples()
@@ -1462,14 +1469,14 @@ def setup_objects(n):
 
     if isinstance(n, int):
         xx = sp.symbols("x1:%i" % (n + 1))
-    elif isinstance(n, basestring):
+    elif isinstance(n, string_types):
         xx = sp.symbols(n)
 
     # now assume n is a sequence of symbols
     elif all([x.is_Symbol for x in n]):
         xx = n
     else:
-        raise TypeError, "unexpected argument-type: " + str(type(n))
+        raise TypeError("unexpected argument-type: " + str(type(n)))
 
     bf = basis_1forms(xx)
 
@@ -1507,7 +1514,7 @@ def _main():
     """
     for testing
     """
-    from ipHelp import IPS, ip_syshook
+    from IPython import embed as IPS
 
     xx = sp.symbols("x1:6")
     dxx = basis_1forms(xx)
