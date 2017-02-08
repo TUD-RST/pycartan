@@ -1,9 +1,5 @@
-
-.. image:: https://badge.fury.io/py/pycartan.svg
-    :target: https://badge.fury.io/py/pycartan
-    
-.. image:: https://travis-ci.org/cknoll/pycartan.svg?branch=master
-    :target: https://travis-ci.org/cknoll/pycartan    
+[![PyPI Package](https://badge.fury.io/py/pycartan.svg)](https://badge.fury.io/py/pycartan)
+[![Build Status](https://travis-ci.org/TUD-RST/pycartan.svg?branch=master)](https://travis-ci.org/TUD-RST/pycartan)
 
 (English version below)
 
@@ -49,5 +45,5 @@ Get pycartan using PyPI::
 
 or the latest git version::
 
-    $ git clone https://github.com/cknoll/pycartan.git
+    $ git clone https://github.com/TUD-RST/pycartan.git
 
