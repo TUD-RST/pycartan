@@ -1,25 +1,25 @@
 language: python
 
 python:
-  - "2.7"
+  - "3.4"
 
 before_install:
- - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+ - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
  - bash ./miniconda.sh -b
- - export PATH=/home/travis/miniconda2/bin:$PATH
+ - export PATH=/home/travis/miniconda3/bin:$PATH
  - conda update --yes --no-deps conda
  - conda update --yes conda
   
 
 install:
  - conda install --yes -c conda sympy numpy pytest
- - python -c "import sympy; print sympy.__version__"
- - git clone https://github.com/cknoll/rst_symbtools.git
- - cd rst_symbtools
+ - python -c "import sympy; print(sympy.__version__)"
+ - git clone https://github.com/TUD-RST/symbtools.git
+ - cd symbtools
  - python setup.py install
  - cd ..
  - python setup.py install
 
 # command to run tests
 script:
- - python2 pycartan/tests/test_pycartan.py
+ - python pycartan/tests/test_pycartan.py

@@ -14,7 +14,7 @@ import pycartan as pc
 import symbtools as st
 import symbtools.noncommutativetools as nct
 
-#from IPython import embed as IPS
+# from IPython import embed as IPS
 
 
 class ExteriorAlgebraTests(unittest.TestCase):
@@ -24,18 +24,18 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
     def test_basics(self):
         dx1, dx2, dx3, dx4, dx5 = self.dx
-        self.assertEquals(dx1.basis, sp.Matrix(self.xx))
-        self.assertEquals(dx1.degree, 1)
+        self.assertEqual(dx1.basis, sp.Matrix(self.xx))
+        self.assertEqual(dx1.degree, 1)
         # TODO: add some more basics
 
     def test_wedge_product1(self):
 
         dx1, dx2, dx3, dx4, dx5 = self.dx
-        self.assertEquals(dx1^dx2, dx1.wp(dx2))
-        self.assertEquals(dx5^dx2, - dx2^dx5)
-        self.assertEquals((dx5^dx2^dx1).degree, 3)
+        self.assertEqual(dx1^dx2, dx1.wp(dx2))
+        self.assertEqual(dx5^dx2, - dx2^dx5)
+        self.assertEqual((dx5^dx2^dx1).degree, 3)
         zero4_form = pc.DifferentialForm(4, self.xx)
-        self.assertEquals((dx5^dx2^dx1^dx5), zero4_form)
+        self.assertEqual((dx5^dx2^dx1^dx5), zero4_form)
         self.assertFalse( any((dx4^dx4).coeff) )
 
     def test_wedge_product2(self):
@@ -44,15 +44,15 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         x1, x2, x3, x4, x5 = self.xx
         dx1, dx2, dx3, dx4, dx5 = self.dx
-        self.assertEquals(dx1*dx2, dx1.wp(dx2))
-        self.assertEquals(dx5*dx2, - dx2^dx5)
-        self.assertEquals((dx5*dx2*dx1).degree, 3)
+        self.assertEqual(dx1*dx2, dx1.wp(dx2))
+        self.assertEqual(dx5*dx2, - dx2^dx5)
+        self.assertEqual((dx5*dx2*dx1).degree, 3)
 
         # commutativity with scalar functions
-        self.assertEquals(dx5*x2*x3*10*dx2*dx1*x1, x2*x3*10*x1*dx5^dx2^dx1)
+        self.assertEqual(dx5*x2*x3*10*dx2*dx1*x1, x2*x3*10*x1*dx5^dx2^dx1)
 
         zero4_form = pc.DifferentialForm(4, self.xx)
-        self.assertEquals((dx5*dx2*dx1*dx5), zero4_form)
+        self.assertEqual((dx5*dx2*dx1*dx5), zero4_form)
         self.assertFalse( any((dx4*dx4).coeff) )
 
     def test_calculation(self):
@@ -113,8 +113,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
         w1 = dx1*x1**2 + dx3*x2
         dw1 = w1.d
         self.assertIsInstance(dw1, pc.DifferentialForm)
-        self.assertEquals(dw1.degree, 2)
-        self.assertEquals(dw1, dx2^dx3)
+        self.assertEqual(dw1.degree, 2)
+        self.assertEqual(dw1, dx2^dx3)
 
     def test_rank(self):
         a, l, r = sp.symbols('a, l, r')
@@ -134,7 +134,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         w3 = w2.subs(a, r)
         w4 = w2.subs(x1, r)
 
-        sl = zip((a, x1), (r, 3*r+7))
+        sl = list(zip((a, x1), (r, 3*r+7)))
         w5 = w2.subs(sl)
         self.assertEqual(w3, dx1 + r*dx2 + f(x1, x2)*dr)
         self.assertEqual(w4, dx1 + a*dx2 + f(r, x2)*dr)
@@ -335,7 +335,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
         if 1:
             y1 = -x3*cos(x1)
             dy1 = pc.d(y1, self.xx)
-            print dy1
+            print(dy1)
             self.assertTrue(dy1.d.is_zero())
             y1b = dy1.integrate()
             self.assertEqual(y1, y1b)
@@ -777,10 +777,10 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         w1_tilde = w.get_differential_form(0)
-        self.assertEquals(w1.coeff, w1_tilde.coeff)
+        self.assertEqual(w1.coeff, w1_tilde.coeff)
 
         w2_tilde = w.get_differential_form(1)
-        self.assertEquals(w2.coeff, w2_tilde.coeff)
+        self.assertEqual(w2.coeff, w2_tilde.coeff)
 
     def test_vector_form_get_coeff_from_idcs(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4')
@@ -796,11 +796,11 @@ class TestVectorDifferentialForms(unittest.TestCase):
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         w_0 = w.get_coeff_from_idcs(0)
         Q_0 = Q_.col(0)
-        self.assertEquals(w_0, Q_0)
+        self.assertEqual(w_0, Q_0)
 
         w_1 = w.get_coeff_from_idcs(1)
         Q_1 = Q_.col(1)
-        self.assertEquals(w_1, Q_1)
+        self.assertEqual(w_1, Q_1)
 
     def test_unpack_vector_form(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
@@ -826,8 +826,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
         
         w1_unpacked, w2_unpacked = w.unpack()
 
-        self.assertEquals(w1.coeff, w1_unpacked.coeff)
-        self.assertEquals(w2.coeff, w2_unpacked.coeff)
+        self.assertEqual(w1.coeff, w1_unpacked.coeff)
+        self.assertEqual(w2.coeff, w2_unpacked.coeff)
 
     def test_vector_form_append(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
@@ -925,7 +925,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # vector 1-form
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
-        self.assertEquals(w.coeff, w_stacked.coeff)
+        self.assertEqual(w.coeff, w_stacked.coeff)
 
     def test_mul(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
@@ -992,7 +992,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         t = w.left_mul_by(M1, s, [C]) 
         t2 = -C*w1.dot() + w2
         
-        self.assertEquals(t2.coeff, t.coeff.row(1).T)
+        self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_2(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
@@ -1024,7 +1024,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # object to compare with:
         t2 = -C*w1 + w2
         
-        self.assertEquals(t2.coeff, t.coeff.row(1).T)
+        self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_3(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
