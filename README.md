@@ -37,7 +37,7 @@ Make sure you have the following dependencies installed:
 - sympy
 - numpy
 - ipython
-- symbtools (see https://github.com/cknoll/rst_symbtools)
+- symbtools (see https://github.com/TUD-RST/symbtools)
 
 Get pycartan using PyPI::
 
