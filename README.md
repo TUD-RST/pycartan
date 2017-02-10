@@ -1,5 +1,6 @@
 [![PyPI Package](https://badge.fury.io/py/pycartan.svg)](https://badge.fury.io/py/pycartan)
 [![Build Status](https://travis-ci.org/TUD-RST/pycartan.svg?branch=master)](https://travis-ci.org/TUD-RST/pycartan)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.275834.svg)](https://doi.org/10.5281/zenodo.275834)
 
 (English version below)
 
