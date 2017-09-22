@@ -20,20 +20,14 @@ import symbtools.noncommutativetools as nct
 from symbtools import lzip
 from functools import reduce
 
-#from IPython import embed as IPS
-
-
-# # Vorzeichen einer Permutation
-# original-Algorithmus -> liefert manchmal 0 bei längeren Permutationen
-# -> durch vorherige Anwendung von 'range_indices' behoben
-
+from ipydex import IPS  # for debugging
 
 # TODO: compare to
 # from sympy.functions.special.tensor_functions import eval_levicivita
 def sign_perm(perm):
     """
     :param perm:
-    :return: the sign {-1, 1} of a permutation
+    :return: the sign of a permutation (-1 or 1)
     examples:  [0, 1, 2] -> 1;
                [1, 0, 2]) -> -1
                [1, 0, 3]) -> -1
@@ -213,7 +207,7 @@ class DifferentialForm(CantSympify):
     def __div__(self, arg):
         # python2 leagacy compatibility
         return self.__truediv__(arg)
-        
+
     def __truediv__(self, arg):
         msg = "Unexpected arg for div: %s of type(%s)" % (str(arg), type(arg))
         try:
@@ -487,7 +481,7 @@ class DifferentialForm(CantSympify):
         res[idcs] = 1
 
         return res
-        
+
     def get_baseform_from_plain_index(self, idx):
         """
         returns the i-th baseform (corresponding to the i-th element of
@@ -497,7 +491,7 @@ class DifferentialForm(CantSympify):
         N = self.num_coeff
         if not -N <= idx < N:
             raise ValueError("%i not in range [0, ..., %i]" %(idx, N-1) )
-        
+
         idx_tup = self.indices[idx]
         return self.get_baseform_from_idcs(idx_tup)
 
@@ -564,7 +558,7 @@ class DifferentialForm(CantSympify):
         if self.grad == 0:
             return str(self.coeff[0])
         nztuples = [(idcs, coeff) for idcs, coeff in zip(self.indices, self.coeff) if coeff != 0]
-        
+
         if self.grad > self.dim_basis:
             coord_strings = ['d'+self.basis[0].name] * self.grad
             return "(0)" + "^".join(coord_strings)
@@ -645,6 +639,32 @@ class DifferentialForm(CantSympify):
                 coeff = coeff.subs(deri_n, dfunc).doit()
         return str(coeff)
 
+    def hodge_star(self):
+        """
+        returns the hodge dual of this form
+
+        assumptions: scalar product is given by identity matrix (implies signature 0)
+
+        Background: see Chapter 1, example 2 in Agricola, Friedrich: Global Analysis -
+        Differential Forms in Analysis, Geometry and Physics.
+        """
+
+        # for every coeff we need its index-tuple I and the complementrary index-tuple J
+        # and then the signature
+
+        all_indices = set(range(self.dim_basis))
+        result = DifferentialForm(self.dim_basis - self.grad, self.basis)
+        for counter, I in enumerate(self.indices):
+            # complementary tuple
+            J = sorted(all_indices - set(I))
+            permutation = list(I)
+            permutation.extend(J)
+
+            s = sign_perm(permutation)
+            result[J] = s*self[I]
+
+        return result
+
     # TODO: extend to higher degrees (maybe)
     def integrate(self):
         """
@@ -698,7 +718,7 @@ class DifferentialForm(CantSympify):
         self_coeff = sp.simplify(self.coeff)
         if not result_d_coeff == self_coeff:
             msg = "Unexpected final result while calculating integration constants"
-            IPS()
+            # IPS()
             raise ValueError(msg)
 
         return result
@@ -919,7 +939,7 @@ class DifferentialForm(CantSympify):
     @property
     def co(self):
         return self.count_ops()
-        
+
     @property
     def srn(self):
         return self.coeff.srn
@@ -987,7 +1007,7 @@ class VectorDifferentialForm(CantSympify):
     def __sub__(self, m):
         neg_m = VectorDifferentialForm(m.degree, m.basis, -1*m.coeff)
         return self + neg_m
-        
+
     # TODO: Unit test
     def __getitem__(self, ind):
         return self._w.__getitem__(ind)
@@ -1366,15 +1386,15 @@ def simplify(arg, **kwargs):
     """
     Simplification Function which is aware of (Vector)DifferentialForms
     """
-    
+
     if isinstance(arg, (DifferentialForm, VectorDifferentialForm)):
         copy = arg*1
         copy.simplify(**kwargs)
         return copy
     else:
         return sp.simplify(arg, **kwargs)
-        
-    
+
+
 
 # Keilprodukt zweier Differentialformen
 def keilprodukt(df1, df2):

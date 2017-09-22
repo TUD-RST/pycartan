@@ -2,7 +2,7 @@
 """
 Created on Thu Oct 09 16:43:00 2014
 
-@author: Carsten Knoll 
+@author: Carsten Knoll
 @author: Klemens Fritzsche
 """
 
@@ -325,8 +325,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
             dy1 = pc.d(y1, self.xx)
             y1b = dy1.integrate()
             self.assertEqual(sp.simplify(y1 - y1b), 0)
-            
-    
+
+
     def test_integrate3(self):
         x1, x2, x3, x4, x5 = self.xx
 
@@ -755,6 +755,16 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
+    def test_hodge_star(self):
+
+        x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
+        foo, ddx = pc.setup_objects(xx)
+        dx1, dx2, dx3 = ddx
+
+        # simple test case: cross product is hodge dual of wedge product
+        h1 = (dx1^dx2).hodge_star()
+        self.assertEqual(h1, dx3)
+
 
 class TestVectorDifferentialForms(unittest.TestCase):
     def setUp(self):
@@ -808,7 +818,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
-        
+
         s  = sp.Symbol('s', commutative=False)
         C  = sp.Symbol('C', commutative=False)
 
@@ -823,7 +833,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         # vector 1-form
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
-        
+
         w1_unpacked, w2_unpacked = w.unpack()
 
         self.assertEqual(w1.coeff, w1_unpacked.coeff)
@@ -835,7 +845,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
-        
+
         s  = sp.Symbol('s', commutative=False)
         C  = sp.Symbol('C', commutative=False)
 
@@ -873,7 +883,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         xddot1, xddot2, xddot3 = xxddot = st.time_deriv(xxdot, xxdot)
 
         XX = st.row_stack(xx, xxdot, xxddot)
-        
+
         s  = sp.Symbol('s', commutative=False)
         C  = sp.Symbol('C', commutative=False)
 
@@ -946,7 +956,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         self.assertEqual(W1.coeff, nct.nc_mul(s,W.coeff))
         self.assertNotEqual(W1.coeff, nct.nc_mul(W.coeff,s))
-        
+
         self.assertEqual(W2.coeff, nct.nc_mul(W.coeff,C))
         self.assertNotEqual(W2.coeff, nct.nc_mul(C,W.coeff))
 
@@ -989,9 +999,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # vector 1-form
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
-        t = w.left_mul_by(M1, s, [C]) 
+        t = w.left_mul_by(M1, s, [C])
         t2 = -C*w1.dot() + w2
-        
+
         self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_2(self):
@@ -1023,7 +1033,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
         t = w.left_mul_by(M2, additional_symbols=[C])
         # object to compare with:
         t2 = -C*w1 + w2
-        
+
         self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_3(self):
@@ -1040,14 +1050,14 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [x3/sin(x1), 1, 0],
             [-tan(x1), 0, x3]])
         Q_ = st.col_stack(Q, sp.zeros(2, 6))
-        
+
         M3 = sp.Matrix([
             [1,0],
             [-C*s**2,1]])
 
         # vector 1-forms
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
-       
+
         with self.assertRaises(Exception) as cm:
             # raises NotImplemented but this might change
             t = w.left_mul_by(M3, s, additional_symbols=[C])
@@ -1096,9 +1106,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # vector 1-forms
         omega_a = pc.VectorDifferentialForm(1, XX, coeff=A_)
         omega_b = pc.VectorDifferentialForm(1, XX, coeff=B_)
-        
+
         omega_c = omega_a + omega_b
-        
+
         # vector form to compare with
         Q_ = A_ + B_
         omega_comp = pc.VectorDifferentialForm(1, XX, coeff=Q_)
@@ -1125,9 +1135,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # vector 1-forms
         omega_a = pc.VectorDifferentialForm(1, XX, coeff=A_)
         omega_b = pc.VectorDifferentialForm(1, XX, coeff=B_)
-        
+
         omega_c = omega_a - omega_b
-        
+
         # vector form to compare with
         Q_ = A_ - B_
         omega_comp = pc.VectorDifferentialForm(1, XX, coeff=Q_)
@@ -1150,9 +1160,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         omega = pc.VectorDifferentialForm(1, XX, coeff=Q_)
         omega_dot = omega.dot()
 
-        
+
         omega_1, omega_2 = omega.unpack()
-        
+
         omega_1dot = omega_1.dot()
         omega_2dot = omega_2.dot()
         Qdot_ = st.row_stack(omega_1dot.coeff.T, omega_2dot.coeff.T)
