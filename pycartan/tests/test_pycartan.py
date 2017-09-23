@@ -14,7 +14,7 @@ import pycartan as pc
 import symbtools as st
 import symbtools.noncommutativetools as nct
 
-# from IPython import embed as IPS
+from ipydex import IPS
 
 
 # noinspection PyUnresolvedReferences
@@ -970,18 +970,16 @@ class TestVectorDifferentialForms(unittest.TestCase):
     def test_mul(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
 
-        s  = sp.Symbol('s', commutative=False)
-        C  = sp.Symbol('C', commutative=False)
+        s = sp.Symbol('s', commutative=False)
+        C = sp.Symbol('C', commutative=False)
 
         Q = sp.Matrix([
             [x3/sin(x1), 1, 0],
             [-tan(x1), 0, x3]])
 
-
         W = pc.VectorDifferentialForm(1, xx, coeff=Q)
 
         W1 = s*W
-
         W2 = W*C
 
         self.assertEqual(W1.coeff, nct.nc_mul(s,W.coeff))
@@ -997,7 +995,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
             W1*alpha
 
         M = sp.eye(2)
-        with self.assertRaises(sp.SympifyError) as cm:
+        with self.assertRaises(TypeError) as cm:
             M*W1
         with self.assertRaises(TypeError) as cm:
             W1*M

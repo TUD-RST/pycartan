@@ -14,6 +14,7 @@ import numpy as np
 import sympy as sp
 from sympy.core.sympify import CantSympify
 import itertools as it
+import inspect
 
 import symbtools as st  # needed for make_global, time_deriv, srn
 import symbtools.noncommutativetools as nct
@@ -944,6 +945,33 @@ class DifferentialForm(CantSympify):
     def srn(self):
         return self.coeff.srn
 
+
+def ensure_not_sympy_matrix_mul():
+    """
+    This auxiliary function prevents that the case M*V can be evaluated.
+    (M: sympy Matrix, V: VectorDifferentialForm).
+
+    The expression M*V triggers M.__mul__(V) to be called. Because V is
+    not a Matrix it is handled as a scalar. This generate a unwanted result
+    but no exception. To caluclate this unwanted result V is left-multiplied by
+    every entry of M (-> V.__mul__). This method tries to detect that situation
+    and raise a proper exception.
+
+    :return: None
+    """
+
+    # TODO: this is not a clean solution (it should be solved on sympy side)
+
+    cf = inspect.currentframe()
+    fi1 = inspect.getframeinfo(cf.f_back.f_back).function
+    fi2 = inspect.getframeinfo(cf.f_back.f_back.f_back).function
+
+    if fi1 == "<listcomp>" and fi2 == "_eval_scalar_mul":
+        # no message necessary because sympy will catch this and generate
+        # its own error
+        raise TypeError
+
+
 class VectorDifferentialForm(CantSympify):
     def __init__(self, n, basis, coeff=None, basis_forms_str=None):
         self.degree = n
@@ -981,6 +1009,13 @@ class VectorDifferentialForm(CantSympify):
         return new_vector_form
 
     def __mul__(self, a):
+        """
+        called if self is the left operand.
+
+        :param a:
+        :return:
+        """
+        ensure_not_sympy_matrix_mul()
         if not st.is_scalar(a):
             msg = "Multiplication of %s and %s not (currently) not allowed. " \
                   "Maybe use .left_mul_by(...)."
@@ -993,6 +1028,13 @@ class VectorDifferentialForm(CantSympify):
         return new_vector_form
 
     def __rmul__(self, a):
+        """
+        called if self is the right operand and the __mul__ method of the left was
+        absent or raised NotImplementedError.
+
+        :param a:
+        :return:
+        """
         if not st.is_scalar(a):
             msg = "Reverse multiplication of %s and %s not (currently) not allowed. " \
                   "Maybe use .left_mul_by(...)."
