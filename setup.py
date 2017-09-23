@@ -21,5 +21,6 @@ setup(
         "numpy (>= 1.10.4)",
         "symbtools (>= 0.1.5)",
         "ipython (>= 3.1.0)",
+        "ipydex (>= 0.1.0)",
     ],
 )

@@ -1,6 +1,7 @@
 language: python
 
 python:
+  - "2.7"
   - "3.4"
 
 before_install:
@@ -12,7 +13,7 @@ before_install:
   
 
 install:
- - conda install --yes -c conda sympy numpy pytest
+ - conda install --yes -c conda sympy numpy
  - python -c "import sympy; print(sympy.__version__)"
  - git clone https://github.com/TUD-RST/symbtools.git
  - cd symbtools
