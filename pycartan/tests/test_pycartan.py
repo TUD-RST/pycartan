@@ -17,6 +17,8 @@ import symbtools.noncommutativetools as nct
 # from IPython import embed as IPS
 
 
+# noinspection PyUnresolvedReferences
+# noinspection PyPep8Naming
 class ExteriorAlgebraTests(unittest.TestCase):
 
     def setUp(self):
@@ -755,17 +757,45 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         self.assertEqual(Mu_1.get_coeff_from_idcs(sigma3), res3.subs(dos, 1))
 
-    def test_hodge_star(self):
+    # noinspection PyPep8
+    def test_hodge_star_3d(self):
 
         x1, x2, x3 = xx = sp.Matrix(sp.symbols("x1, x2, x3"))
         foo, ddx = pc.setup_objects(xx)
         dx1, dx2, dx3 = ddx
 
-        # simple test case: cross product is hodge dual of wedge product
-        h1 = (dx1^dx2).hodge_star()
-        self.assertEqual(h1, dx3)
+        # cross product is hodge dual of wedge product
+        self.assertEqual((dx1^dx2).hodge_star(), dx3)
+        self.assertEqual((dx1^dx3).hodge_star(), -dx2)
+        self.assertEqual((dx2^dx3).hodge_star(), dx1)
+
+        # https://en.wikipedia.org/wiki/Hodge_isomorphism#Three_dimensions
+        self.assertEqual(dx1.hodge_star(), dx2^dx3)
+        self.assertEqual(dx2.hodge_star(), dx3^dx1)  # note the non canonical order
+        self.assertEqual(dx3.hodge_star(), dx1^dx2)
+
+    @unittest.expectedFailure
+    def test_hodge_star_4d(self):
+        # noinspection PyPep8Naming
+
+        x1, x2, x3, x4 = xx = sp.Matrix(sp.symbols("x1, x2, x3, x4"))
+        foo, ddx = pc.setup_objects(xx)
+        dt, dx, dy, dz = ddx
+
+        # see https://en.wikipedia.org/wiki/Hodge_isomorphism#Four_dimensions
+        # Minkowski spacetime with metric signature (+ − − −)
+        # Currently not supported
+
+        self.assertEqual(dt.hodge_star(), dx^dy^dz)
+        self.assertEqual(dx.hodge_star(), dt^dy^dz)
+        self.assertEqual(dy.hodge_star(), -dt^dx^dz)
+        self.assertEqual(dz.hodge_star(), dt^dx^dy)
+
+        self.assertEqual((dt^dx).hodge_star(), -dy^dz)
 
 
+# noinspection PyUnresolvedReferences
+# noinspection PyPep8Naming
 class TestVectorDifferentialForms(unittest.TestCase):
     def setUp(self):
         pass
