@@ -1,4 +1,6 @@
-from distutils.core import setup
+# -*- coding: utf-8 -*-
+
+from setuptools import setup
 
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
