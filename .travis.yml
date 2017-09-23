@@ -19,7 +19,7 @@ install:
  - cd symbtools
  - python setup.py install
  - cd ..
- - python setup.py install
+ - pip install -e .
 
 # command to run tests
 script:
