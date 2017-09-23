@@ -1007,8 +1007,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
-        s  = sp.Symbol('s', commutative=False)
-        C  = sp.Symbol('C', commutative=False)
+        s = sp.Symbol('s', commutative=False)
+        C = sp.Symbol('C', commutative=False)
 
         Q = sp.Matrix([
             [x3/sin(x1), 1, 0],
@@ -1017,8 +1017,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         # s-dependent matrix
         M1 = sp.Matrix([
-            [1,0],
-            [-C*s,1]])
+            [1, 0],
+            [-C*s, 1]])
 
         # 1-forms
         w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
@@ -1030,6 +1030,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         t = w.left_mul_by(M1, s, [C])
         t2 = -C*w1.dot() + w2
 
+        # in current sympy this fails due to a commutativity issue
+        # (-C*s + s*C) is not zero
+        # IPS()
         self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_2(self):
