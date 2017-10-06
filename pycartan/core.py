@@ -1084,7 +1084,7 @@ class VectorDifferentialForm(CantSympify):
             M0 = matrix_shifted
         else:
             M1 = matrix_shifted.diff(s)
-            M0 = matrix_shifted - M1*s
+            M0 = matrix_shifted - nct.nc_mul(M1,s)
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
         for i in range(0, m1):

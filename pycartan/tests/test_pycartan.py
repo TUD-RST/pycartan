@@ -1027,12 +1027,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         # vector 1-form
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
 
-        t = w.left_mul_by(M1, s, [C])
+        t = w.left_mul_by(M1, s, additional_symbols=[C])
         t2 = -C*w1.dot() + w2
 
-        # in current sympy this fails due to a commutativity issue
-        # (-C*s + s*C) is not zero
-        # IPS()
         self.assertEqual(t2.coeff, t.coeff.row(1).T)
 
     def test_left_mul_by_2(self):
@@ -1233,6 +1230,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
 
 def main():
+    #~ IPS()
     unittest.main()
 
 if __name__ == '__main__':
