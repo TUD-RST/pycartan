@@ -784,7 +784,7 @@ class ExteriorAlgebraTests(unittest.TestCase):
 
         # see https://en.wikipedia.org/wiki/Hodge_isomorphism#Four_dimensions
         # Minkowski spacetime with metric signature (+ − − −)
-        # Currently not supported
+        # Currently not supported (non-standard scalar product not yet implemented)
 
         self.assertEqual(dt.hodge_star(), dx^dy^dz)
         self.assertEqual(dx.hodge_star(), dt^dy^dz)
