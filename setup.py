@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+from pycartan import __version__
 
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
 setup(
     name='pycartan',
-    version='0.1.2',
+    version=__version__,
     author='Carsten Knoll, Klemens Fritzsche',
     author_email='Carsten.Knoll@tu-dresden.de',
     packages=['pycartan'],
