@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from pycartan import __version__
+from pycartan.release import __version__
 
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()

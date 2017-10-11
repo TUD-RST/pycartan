@@ -15,10 +15,7 @@ before_install:
 install:
  - conda install --yes -c conda sympy numpy
  - python -c "import sympy; print(sympy.__version__)"
- - git clone https://github.com/TUD-RST/symbtools.git
- - cd symbtools
- - python setup.py install
- - cd ..
+ - pip install -r requirements.txt
  - pip install -e .
 
 # command to run tests
