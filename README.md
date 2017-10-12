@@ -16,6 +16,8 @@ d.h. das Paket befindet sich im Entwicklungszustand.
 Trotz, dass wesentliche Teile durch Unittests abgedeckt sind, enthält der Code
 mit einer gewissen Wahrscheinlichkeit Fehler.
 
+Eine fragmentarische Dokumentation gibt es als  [Jupyter-Notebook](http://nbviewer.jupyter.org/github/TUD-RST/pycartan/blob/master/doc/pycartan_examples.ipynb).
+
 Feedback-Kontakt: http://cknoll.github.io/pages/impressum.html
 
 
@@ -31,6 +33,7 @@ The package has the status of research-code. Despite significant parts are cover
 the occurence of bugs (including wrong results) is probable.
 
 
+A rudimentary documentation is available as  [Jupyter notebook](http://nbviewer.jupyter.org/github/TUD-RST/pycartan/blob/master/doc/pycartan_examples.ipynb).
 
 Feedback-Contact: http://cknoll.github.io/pages/impressum.html
 
