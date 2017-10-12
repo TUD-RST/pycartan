@@ -26,8 +26,8 @@ General Information
 ===================
 The Package pycartan contains code for representation of differential forms and
 respective operations of exterior calculus (exterior derivative, wedge product,
-contraction (interior product)). Background is the application differential
-forms in the context of control theory.
+contraction (interior product), Integration, Hodge-Star-Operator).
+Background is the application differential forms in the context of control theory.
 
 The package has the status of research-code. Despite significant parts are covered by unittests,
 the occurence of bugs (including wrong results) is probable.
