@@ -9,7 +9,7 @@ with open("requirements.txt") as requirements_file:
 setup(
     name='pycartan',
     version=__version__,
-    author='Carsten Knoll, Klemens Fritzsche',
+    author='Carsten Knoll, Klemens Fritzsche, Torsten Knüppel',
     author_email='Carsten.Knoll@tu-dresden.de',
     packages=['pycartan'],
     url='https://github.com/TUD-RST/pycartan',
