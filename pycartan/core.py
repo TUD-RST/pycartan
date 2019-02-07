@@ -974,6 +974,13 @@ def ensure_not_sympy_matrix_mul():
 
 class VectorDifferentialForm(CantSympify):
     def __init__(self, n, basis, coeff=None, basis_forms_str=None):
+        """
+
+        :param n:       degree of Differential forms
+        :param basis:   basis coordinates like [x1, x2, xdot1, xot2, ...]
+        :param coeff:   optional coeff-Matrix
+        :param basis_forms_str:
+        """
         self.degree = n
         self.basis = sp.Matrix(basis)
         self.basis_forms_str = basis_forms_str
@@ -1063,6 +1070,7 @@ class VectorDifferentialForm(CantSympify):
         for i in range(0, self.m):
             self._w[i].coeff.simplify(*args, **kwargs)
 
+    # noinspection PyPep8Naming
     def left_mul_by(self, matrix, s=None, additional_symbols=None):
         """ Performs matrix*vectorform and returns the new vectorform.
             additional_symbols is an optional list of time_dependent symbols
@@ -1071,28 +1079,28 @@ class VectorDifferentialForm(CantSympify):
         assert isinstance(matrix, sp.MatrixBase)
 
         m1, n1 = matrix.shape
-        assert n1==self.m, "Matrix Dimesion does not fit vector form!"
+        assert n1 == self.m, "Matrix Dimesion does not fit vector form!"
 
         # right shift s:
         matrix_shifted = nct.right_shift_all(matrix, s=s, func_symbols=additional_symbols)
 
         # if s is of higher order, raise not implemented
-        if not s==None and matrix_shifted.diff(s).has(s):
+        if s is not None and matrix_shifted.diff(s).has(s):
             raise NotImplementedError
 
-        if s==None:
+        if s is None:
             M0 = matrix_shifted
         else:
             M1 = matrix_shifted.diff(s)
-            M0 = matrix_shifted - nct.nc_mul(M1,s)
+            M0 = matrix_shifted - nct.nc_mul(M1, s)
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
         for i in range(0, m1):
             new_wi = DifferentialForm(1, self.basis)
             for j in range(0, n1):
-                new_wi += M0[i,j] * self.get_differential_form(j)
-                if not s==None:
-                    new_wi += M1[i,j] * self.get_differential_form(j).dot(additional_symbols)
+                new_wi += M0[i, j] * self.get_differential_form(j)
+                if s is not None:
+                    new_wi += M1[i, j] * self.get_differential_form(j).dot(additional_symbols)
             new_vector_form.append(new_wi)
 
         return new_vector_form
