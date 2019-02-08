@@ -1075,6 +1075,11 @@ class VectorDifferentialForm(CantSympify):
         """ Performs matrix*vectorform and returns the new vectorform.
             additional_symbols is an optional list of time_dependent symbols
             Note: matrix is assumed to be polynomial in s
+
+        :param matrix:              left factor of the desired product
+        :param s:                   Symbol (for time derivative)  or None (no time derivatives)
+        :param additional_symbols:  Further symbols which are time dependent
+        :return:
         """
         assert isinstance(matrix, sp.MatrixBase)
 
@@ -1091,12 +1096,17 @@ class VectorDifferentialForm(CantSympify):
         if s is None:
             M0 = matrix_shifted
         else:
+            # calculate matrix valued coefficients
             M1 = matrix_shifted.diff(s)
             M0 = matrix_shifted - nct.nc_mul(M1, s)
 
         new_vector_form = VectorDifferentialForm(self.degree, self.basis)
+
+        # iterate over the row of the factor
         for i in range(0, m1):
             new_wi = DifferentialForm(1, self.basis)
+
+            # iterate over columns
             for j in range(0, n1):
                 new_wi += M0[i, j] * self.get_differential_form(j)
                 if s is not None:

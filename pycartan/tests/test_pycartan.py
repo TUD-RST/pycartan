@@ -125,7 +125,8 @@ class ExteriorAlgebraTests(unittest.TestCase):
         self.assertEqual(aa.rank(), 1)
 
     def test_subs(self):
-        a, f, r = sp.symbols('a, f, r')
+        a, r = sp.symbols('a, r')
+        f = sp.Function("f")
         (x1, x2, r), (dx1, dx2, dr) = pc.diffgeo_setup(3)
         #aa = a*dr-r*dx1-l*dx2
 
@@ -1021,8 +1022,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
             [-C*s, 1]])
 
         # 1-forms
-        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
-        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1,:])
+        w1 = pc.DifferentialForm(1, XX, coeff=Q_[0, :])
+        w2 = pc.DifferentialForm(1, XX, coeff=Q_[1, :])
 
         # vector 1-form
         w = pc.VectorDifferentialForm(1, XX, coeff=Q_)
@@ -1030,7 +1031,9 @@ class TestVectorDifferentialForms(unittest.TestCase):
         t = w.left_mul_by(M1, s, additional_symbols=[C])
         t2 = -C*w1.dot() + w2
 
-        self.assertEqual(t2.coeff, t.coeff.row(1).T)
+        tmp = t2.coeff - t.coeff.row(1).T
+
+        self.assertEqual(tmp.expand(), tmp*0)
 
     def test_left_mul_by_2(self):
         x1, x2, x3 = xx = st.symb_vector('x1:4', commutative=False)
@@ -1039,7 +1042,7 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         XX = st.row_stack(xx, xxdot, xxddot)
 
-        C  = sp.Symbol('C', commutative=False)
+        C = sp.Symbol('C', commutative=False)
 
         Q = sp.Matrix([
             [x3/sin(x1), 1, 0],
@@ -1048,8 +1051,8 @@ class TestVectorDifferentialForms(unittest.TestCase):
 
         # matrix independent of s
         M2 = sp.Matrix([
-            [1,0],
-            [-C,1]])
+            [1, 0],
+            [-C, 1]])
 
         # 1-forms
         w1 = pc.DifferentialForm(1, XX, coeff=Q_[0,:])
