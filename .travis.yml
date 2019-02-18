@@ -3,21 +3,18 @@ language: python
 python:
   - "2.7"
   - "3.4"
-
-before_install:
- - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
- - bash ./miniconda.sh -b
- - export PATH=/home/travis/miniconda3/bin:$PATH
- - conda update --yes --no-deps conda
- - conda update --yes conda
-  
+  - "3.5"
+  - "3.6"
 
 install:
- - conda install --yes -c conda sympy numpy
- - python -c "import sympy; print(sympy.__version__)"
+ - pip install --upgrade pip
+ - pip install sympy
+ - pip install --upgrade sympy
  - pip install -r requirements.txt
  - pip install -e .
 
 # command to run tests
 script:
+ - python -c "import sympy; print(sympy.__version__)"
+ - python -c "import symbtools; print(symbtools.__version__)"
  - python pycartan/tests/test_pycartan.py
