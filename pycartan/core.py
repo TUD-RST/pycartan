@@ -985,6 +985,10 @@ class VectorDifferentialForm(CantSympify):
         self.basis = sp.Matrix(basis)
         self.basis_forms_str = basis_forms_str
 
+        # make the product sp.Matrix*VDF work
+        # (assure that our __rmul__ is called by M.__mul__)
+        self._op_priority = 10.02
+
         if not coeff==None:
             self.coeff = coeff
             self.m, self.n = coeff.shape
